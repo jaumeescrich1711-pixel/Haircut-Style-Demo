@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Haircut Style",
-  description: "Demo web y de reservas para Haircut Style.",
+  title: "Haircut Style | Centro de estética para hombres",
+  description:
+    "Haircut Style, centro de estética y cuidado personal para hombres.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
