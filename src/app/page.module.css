@@ -225,6 +225,113 @@
   outline-offset: 4px;
 }
 
+.about {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #e7e0d4;
+  color: #111;
+}
+
+.about::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  left: clamp(1rem, 2.1vw, 2rem);
+  height: 1px;
+  background: linear-gradient(90deg, #b9935a, rgb(185 147 90 / 15%) 42%, transparent);
+  content: "";
+}
+
+.about::after {
+  position: absolute;
+  z-index: -1;
+  right: -14rem;
+  bottom: -24rem;
+  width: min(58vw, 48rem);
+  aspect-ratio: 1;
+  border: 1px solid rgb(17 17 17 / 9%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 6rem rgb(17 17 17 / 2%),
+    0 0 0 12rem rgb(17 17 17 / 1.5%);
+  content: "";
+}
+
+.aboutInner {
+  display: grid;
+  width: min(100%, 86rem);
+  min-height: 72svh;
+  margin: 0 auto;
+  align-items: center;
+  gap: clamp(4rem, 9vw, 10rem);
+  grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.15fr);
+  padding: clamp(7rem, 12vw, 11rem) clamp(1.5rem, 6vw, 6.5rem);
+}
+
+.aboutHeading {
+  position: relative;
+  padding-left: clamp(1.25rem, 2.5vw, 2.25rem);
+  border-left: 1px solid #b9935a;
+}
+
+.aboutHeading::before {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 7px;
+  height: 7px;
+  background: #111;
+  content: "";
+}
+
+.aboutTitle {
+  margin: 0;
+  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(3.6rem, 6vw, 6.25rem);
+  font-stretch: condensed;
+  font-weight: 800;
+  letter-spacing: -0.07em;
+  line-height: 0.84;
+  text-transform: uppercase;
+}
+
+.aboutTitle span {
+  display: block;
+}
+
+.aboutTitle span:last-child {
+  color: transparent;
+  -webkit-text-stroke: clamp(1px, 0.08vw, 1.5px) #8f6e3d;
+}
+
+.aboutCopy {
+  position: relative;
+  padding-top: clamp(1.75rem, 3vw, 2.5rem);
+  border-top: 1px solid rgb(17 17 17 / 24%);
+}
+
+.aboutCopy::before {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: clamp(4rem, 8vw, 7rem);
+  height: 2px;
+  background: #b9935a;
+  content: "";
+}
+
+.aboutText {
+  max-width: 35ch;
+  margin: 0;
+  color: #282622;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.3rem, 2.25vw, 2.05rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
 @media (max-width: 720px) {
   .hero {
     align-items: end;
@@ -286,6 +393,38 @@
   .cta {
     width: 100%;
     gap: 1rem;
+  }
+
+  .about::after {
+    right: -42vw;
+    bottom: -28vw;
+    width: 100vw;
+  }
+
+  .aboutInner {
+    min-height: auto;
+    gap: 3.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 6.5rem 1.5rem 7rem;
+  }
+
+  .aboutHeading {
+    min-width: 0;
+    padding-left: 1.25rem;
+  }
+
+  .aboutTitle {
+    font-size: clamp(2.4rem, 13vw, 4.5rem);
+  }
+
+  .aboutCopy {
+    min-width: 0;
+    padding-top: 1.75rem;
+  }
+
+  .aboutText {
+    font-size: clamp(1.2rem, 5.5vw, 1.5rem);
+    line-height: 1.6;
   }
 }
 

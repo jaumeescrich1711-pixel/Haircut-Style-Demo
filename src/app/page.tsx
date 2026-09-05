@@ -26,6 +26,27 @@ export default function Home() {
           </button>
         </div>
       </section>
+
+      <section className={styles.about} aria-labelledby="about-title">
+        <div className={styles.aboutInner}>
+          <div className={styles.aboutHeading}>
+            <h2 id="about-title" className={styles.aboutTitle}>
+              <span>Sobre</span>
+              <span>nosotros</span>
+            </h2>
+          </div>
+
+          <div className={styles.aboutCopy}>
+            <p className={styles.aboutText}>
+              En Haircut Style creemos que un buen corte es mucho más que un
+              cambio de look. Somos una barbería dedicada al cuidado y estilo
+              masculino, donde combinamos profesionalidad, atención
+              personalizada y las últimas tendencias para que salgas siempre
+              con tu mejor versión.
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
