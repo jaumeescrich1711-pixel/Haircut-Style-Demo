@@ -1,5 +1,6 @@
 .page {
   min-height: 100svh;
+  overflow-x: clip;
   background: #0b0b0b;
 }
 
