@@ -181,6 +181,132 @@
   outline-offset: 4px;
 }
 
+.professionals {
+  background:
+    linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px),
+    #0b0b0b;
+  background-size: 72px 72px;
+}
+
+.professionalsInner {
+  width: min(100%, 86rem);
+  margin: 0 auto;
+  padding: 0 clamp(1.5rem, 6vw, 6.5rem) clamp(6.5rem, 10vw, 10rem);
+}
+
+.professionalsInner::before {
+  display: block;
+  margin-bottom: clamp(6.5rem, 10vw, 10rem);
+  border-top: 1px solid rgb(242 238 230 / 12%);
+  content: "";
+}
+
+.professionalsTitle {
+  font-size: clamp(3rem, 6vw, 5.2rem);
+}
+
+.professionalGrid {
+  display: grid;
+  margin-top: clamp(4rem, 7vw, 7rem);
+  border-top: 1px solid rgb(185 147 90 / 45%);
+  border-left: 1px solid rgb(242 238 230 / 12%);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.professionalCard {
+  position: relative;
+  display: grid;
+  min-height: 25rem;
+  align-content: space-between;
+  gap: 3rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-right: 1px solid rgb(242 238 230 / 12%);
+  border-bottom: 1px solid rgb(242 238 230 / 12%);
+  background: linear-gradient(155deg, rgb(255 255 255 / 3%), transparent 55%);
+  color: #f2eee6;
+}
+
+.professionalCard::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5rem;
+  height: 1px;
+  background: #b9935a;
+  content: "";
+}
+
+.professionalIdentity {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.professionalInitial {
+  display: grid;
+  width: clamp(4.5rem, 8vw, 7rem);
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgb(185 147 90 / 65%);
+  border-radius: 50%;
+  color: #b9935a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+
+.professionalCard h3 {
+  margin: 0;
+  font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  font-stretch: condensed;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.professionalServices p {
+  margin: 0 0 1rem;
+  color: #7c756a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.professionalServices ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.professionalServices li {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgb(185 147 90 / 45%);
+  color: #cfc7ba;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 1100px) {
+  .professionals .headingRow {
+    gap: 2rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .professionalsTitle {
+    max-width: none;
+  }
+
+  .professionals .sectionIntro {
+    max-width: 36ch;
+  }
+}
+
 .results {
   background: #e7e0d4;
   color: #111;
@@ -214,13 +340,13 @@
 
 .bookingInner {
   display: grid;
-  width: min(100%, 86rem);
+  width: min(100%, 98rem);
   min-height: 80svh;
   margin: 0 auto;
   align-items: center;
-  gap: clamp(4rem, 10vw, 10rem);
-  grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.1fr);
-  padding: clamp(6.5rem, 10vw, 10rem) clamp(1.5rem, 6vw, 6.5rem);
+  gap: clamp(3rem, 6vw, 6rem);
+  grid-template-columns: minmax(15rem, 0.48fr) minmax(38rem, 1.52fr);
+  padding: clamp(6.5rem, 10vw, 10rem) clamp(1.5rem, 4vw, 4rem);
 }
 
 .bookingTitle,
@@ -253,13 +379,11 @@
 
 .bookingMount {
   position: relative;
-  display: grid;
-  min-height: 27rem;
-  place-items: center;
-  padding: 3rem;
+  min-width: 0;
+  padding: clamp(1rem, 2.4vw, 2rem);
   border: 1px solid rgb(185 147 90 / 55%);
   background: rgb(5 5 5 / 46%);
-  text-align: center;
+  text-align: left;
 }
 
 .bookingMount::before,
@@ -308,7 +432,7 @@
   transform: translate(-50%, -50%) rotate(90deg);
 }
 
-.bookingMount p {
+.bookingMount > p {
   align-self: end;
   margin: 0;
   font-size: 0.75rem;
@@ -322,6 +446,16 @@
   color: #777168;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.9rem;
+}
+
+@media (max-width: 1100px) {
+  .bookingInner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bookingCopy > p:last-child {
+    max-width: 44ch;
+  }
 }
 
 .location {
@@ -626,6 +760,10 @@
     min-height: 25rem;
   }
 
+  .professionalCard {
+    min-height: 22rem;
+  }
+
   .bookingInner,
   .contactInner {
     gap: 4rem;
@@ -643,6 +781,14 @@
 @media (max-width: 720px) {
   .sectionInner {
     padding: 6.5rem 1.5rem;
+  }
+
+  .professionalsInner {
+    padding: 0 1.5rem 6.5rem;
+  }
+
+  .professionalsInner::before {
+    margin-bottom: 6.5rem;
   }
 
   .headingRow,
@@ -682,6 +828,17 @@
     transform: none;
   }
 
+  .professionalGrid {
+    border-left: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .professionalCard {
+    min-height: 21rem;
+    padding: 1.75rem;
+    border-left: 1px solid rgb(242 238 230 / 12%);
+  }
+
   .booking::after {
     top: auto;
     right: -55vw;
@@ -701,8 +858,7 @@
   }
 
   .bookingMount {
-    min-height: 22rem;
-    padding: 2rem 1.5rem;
+    padding: 0.75rem;
   }
 
   .locationGrid {

@@ -1,18 +1,22 @@
+import { getPublicBookingSettings } from "@/lib/business-settings";
+import { getTodayInTimeZone } from "@/lib/calendar-date";
+import { getActiveProfessionals } from "@/lib/professionals";
+import { getActiveServices } from "@/lib/services";
+
+import BookingCalendar from "./booking-calendar";
 import BusinessStatus from "./business-status";
 import styles from "./page.module.css";
 import sections from "./public-sections.module.css";
 import ResultsCarousel from "./results-carousel";
 
-const services = [
-  { id: "corte", name: "Corte", duration: "30 min", price: "13 €" },
-  { id: "barba", name: "Barba", duration: "15 min", price: "8 €" },
-  {
-    id: "corte-barba",
-    name: "Corte + barba",
-    duration: "45 min",
-    price: "19 €",
-  },
-] as const;
+export const dynamic = "force-dynamic";
+
+const euroFormatter = new Intl.NumberFormat("es-ES", {
+  style: "currency",
+  currency: "EUR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
 
 // Contenido de demostración: sustituir estos datos antes de publicar la versión final.
 const demoContact = {
@@ -27,13 +31,24 @@ const quickLinks = [
   { label: "Inicio", href: "#inicio" },
   { label: "Sobre nosotros", href: "#sobre-nosotros" },
   { label: "Servicios", href: "#servicios" },
+  { label: "Profesionales", href: "#profesionales" },
   { label: "Resultados", href: "#resultados" },
   { label: "Reservar cita", href: "#reservar" },
   { label: "Ubicación", href: "#ubicacion" },
   { label: "Contacto", href: "#contacto" },
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  const [services, professionals, bookingSettings] = await Promise.all([
+    getActiveServices(),
+    getActiveProfessionals(),
+    getPublicBookingSettings(),
+  ]);
+  const today = getTodayInTimeZone(bookingSettings.timeZone);
+  const serviceNamesById = new Map(
+    services.map((service) => [service.id, service.name]),
+  );
+
   return (
     <main className={styles.page}>
       <section id="inicio" className={styles.hero} aria-labelledby="hero-title">
@@ -111,9 +126,9 @@ export default function Home() {
                 </span>
                 <div>
                   <h3>{service.name}</h3>
-                  <p>{service.duration}</p>
+                  <p>{service.durationMinutes} min</p>
                 </div>
-                <strong>{service.price}</strong>
+                <strong>{euroFormatter.format(service.price)}</strong>
                 <a
                   className={sections.serviceButton}
                   href="#reservar"
@@ -130,13 +145,75 @@ export default function Home() {
       </section>
 
       <section
+        id="profesionales"
+        className={sections.professionals}
+        aria-labelledby="professionals-title"
+      >
+        <div className={sections.professionalsInner}>
+          <header className={sections.sectionHeader}>
+            <p className={sections.eyebrow}>02 — Equipo Haircut Style</p>
+            <div className={sections.headingRow}>
+              <h2
+                id="professionals-title"
+                className={`${sections.sectionTitle} ${sections.professionalsTitle}`}
+              >
+                Nuestros <span>profesionales</span>
+              </h2>
+              <p className={sections.sectionIntro}>
+                Conoce a quienes cuidan cada detalle y los servicios que
+                realiza cada profesional.
+              </p>
+            </div>
+          </header>
+
+          <div className={sections.professionalGrid}>
+            {professionals.map((professional, index) => {
+              const professionalServiceNames = professional.serviceIds
+                .map((serviceId) => serviceNamesById.get(serviceId))
+                .filter((serviceName): serviceName is string =>
+                  Boolean(serviceName),
+                );
+
+              return (
+                <article
+                  className={sections.professionalCard}
+                  key={professional.id}
+                >
+                  <span className={sections.cardNumber}>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className={sections.professionalIdentity}>
+                    <span
+                      className={sections.professionalInitial}
+                      aria-hidden="true"
+                    >
+                      {professional.name.charAt(0)}
+                    </span>
+                    <h3>{professional.name}</h3>
+                  </div>
+                  <div className={sections.professionalServices}>
+                    <p>Servicios</p>
+                    <ul>
+                      {professionalServiceNames.map((serviceName) => (
+                        <li key={serviceName}>{serviceName}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section
         id="resultados"
         className={sections.results}
         aria-labelledby="results-title"
       >
         <div className={sections.sectionInner}>
           <header className={`${sections.sectionHeader} ${sections.darkText}`}>
-            <p className={sections.eyebrow}>02 — Nuestro trabajo</p>
+            <p className={sections.eyebrow}>03 — Nuestro trabajo</p>
             <div className={sections.headingRow}>
               <h2 id="results-title" className={sections.sectionTitle}>
                 Resultados <span>con carácter</span>
@@ -158,12 +235,13 @@ export default function Home() {
       >
         <div className={sections.bookingInner}>
           <div className={sections.bookingCopy}>
-            <p className={sections.eyebrow}>03 — Próxima fase</p>
+            <p className={sections.eyebrow}>04 — Reserva online</p>
             <h2 id="booking-title" className={sections.bookingTitle}>
               Reserva tu <span>próxima visita</span>
             </h2>
             <p>
-              Aquí integraremos el sistema de reservas online de Haircut Style.
+              Elige servicio, profesional y uno de los horarios realmente
+              disponibles. No se guardará nada hasta el siguiente paso.
             </p>
           </div>
 
@@ -171,14 +249,18 @@ export default function Home() {
             id="sistema-reservas"
             className={sections.bookingMount}
             data-reservation-root
-            aria-label="Zona preparada para el futuro sistema de reservas"
+            aria-label="Calendario de reservas"
           >
-            <div className={sections.bookingMark} aria-hidden="true">
-              <span />
-              <span />
-            </div>
-            <p>Espacio preparado para reservas</p>
-            <span>Sin calendario ni datos personales en esta fase</span>
+            <BookingCalendar
+              services={services.map((service) => ({
+                id: service.id,
+                name: service.name,
+                durationMinutes: service.durationMinutes,
+              }))}
+              professionals={professionals}
+              settings={bookingSettings}
+              today={today}
+            />
           </div>
         </div>
       </section>
@@ -190,7 +272,7 @@ export default function Home() {
       >
         <div className={sections.sectionInner}>
           <header className={`${sections.sectionHeader} ${sections.darkText}`}>
-            <p className={sections.eyebrow}>04 — Visítanos</p>
+            <p className={sections.eyebrow}>05 — Visítanos</p>
             <div className={sections.headingRow}>
               <h2 id="location-title" className={sections.sectionTitle}>
                 Ubicación <span>y horarios</span>
@@ -254,7 +336,7 @@ export default function Home() {
       >
         <div className={sections.contactInner}>
           <div>
-            <p className={sections.eyebrow}>05 — Contacto</p>
+            <p className={sections.eyebrow}>06 — Contacto</p>
             <h2 id="contact-title" className={sections.contactTitle}>
               ¿Tienes alguna duda? <span>Contacta con nosotros</span>
             </h2>
