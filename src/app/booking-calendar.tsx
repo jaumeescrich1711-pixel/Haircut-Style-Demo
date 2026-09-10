@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import styles from "./booking-calendar.module.css";
 
@@ -8,6 +14,7 @@ type ServiceOption = {
   id: number;
   name: string;
   durationMinutes: number;
+  price: number;
 };
 
 type ProfessionalOption = {
@@ -44,6 +51,12 @@ type CalendarResponse = {
   days: CalendarDay[];
 };
 
+type CustomerField = "name" | "phone" | "email";
+
+type CustomerForm = Record<CustomerField, string>;
+
+type CustomerFormErrors = Partial<Record<CustomerField, string>>;
+
 type BookingCalendarProps = {
   services: ServiceOption[];
   professionals: ProfessionalOption[];
@@ -69,6 +82,16 @@ const longDateFormatter = new Intl.DateTimeFormat("es-ES", {
   month: "long",
   timeZone: "UTC",
 });
+
+const euroFormatter = new Intl.NumberFormat("es-ES", {
+  style: "currency",
+  currency: "EUR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^\+?[0-9\s().-]+$/;
 
 function monthToDate(month: string) {
   const [year, monthNumber] = month.split("-").map(Number);
@@ -105,6 +128,30 @@ function getDayTitle(day: CalendarDay) {
   }
 }
 
+function validateCustomerForm(values: CustomerForm) {
+  const errors: CustomerFormErrors = {};
+  const phoneDigits = values.phone.replace(/\D/g, "");
+
+  if (!values.name.trim()) {
+    errors.name = "Introduce tu nombre.";
+  }
+
+  if (
+    !values.phone.trim() ||
+    !phonePattern.test(values.phone.trim()) ||
+    phoneDigits.length < 7 ||
+    phoneDigits.length > 15
+  ) {
+    errors.phone = "Introduce un teléfono válido.";
+  }
+
+  if (!emailPattern.test(values.email.trim())) {
+    errors.email = "Introduce un email válido.";
+  }
+
+  return errors;
+}
+
 export default function BookingCalendar({
   services,
   professionals,
@@ -129,6 +176,14 @@ export default function BookingCalendar({
   const [calendar, setCalendar] = useState<CalendarResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customer, setCustomer] = useState<CustomerForm>({
+    name: "",
+    phone: "",
+    email: "",
+  });
+  const [customerErrors, setCustomerErrors] =
+    useState<CustomerFormErrors>({});
+  const [formValidated, setFormValidated] = useState(false);
 
   const selectedService = services.find(
     (service) => service.id === selectedServiceId,
@@ -163,6 +218,8 @@ export default function BookingCalendar({
     setCalendar(null);
     setError(null);
     setLoading(false);
+    setCustomerErrors({});
+    setFormValidated(false);
   }, [currentMonth]);
 
   function chooseProfessional(selection: ProfessionalSelection) {
@@ -173,6 +230,8 @@ export default function BookingCalendar({
     setCalendar(null);
     setError(null);
     setLoading(true);
+    setCustomerErrors({});
+    setFormValidated(false);
   }
 
   function navigateMonth(amount: number) {
@@ -182,6 +241,30 @@ export default function BookingCalendar({
     setCalendar(null);
     setError(null);
     setLoading(true);
+    setCustomerErrors({});
+    setFormValidated(false);
+  }
+
+  function updateCustomer(field: CustomerField, value: string) {
+    setCustomer((current) => ({ ...current, [field]: value }));
+    setCustomerErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const nextErrors = { ...current };
+      delete nextErrors[field];
+      return nextErrors;
+    });
+    setFormValidated(false);
+  }
+
+  function validateCustomer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const nextErrors = validateCustomerForm(customer);
+    setCustomerErrors(nextErrors);
+    setFormValidated(Object.keys(nextErrors).length === 0);
   }
 
   useEffect(() => {
@@ -385,6 +468,8 @@ export default function BookingCalendar({
                       onClick={() => {
                         setSelectedDate(day.date);
                         setSelectedSlot(null);
+                        setCustomerErrors({});
+                        setFormValidated(false);
                       }}
                       key={day.date}
                     >
@@ -426,7 +511,11 @@ export default function BookingCalendar({
                         type="button"
                         data-selected={selectedSlot?.start === slot.start}
                         aria-pressed={selectedSlot?.start === slot.start}
-                        onClick={() => setSelectedSlot(slot)}
+                        onClick={() => {
+                          setSelectedSlot(slot);
+                          setCustomerErrors({});
+                          setFormValidated(false);
+                        }}
                         key={slot.start}
                       >
                         {slot.start}
@@ -446,13 +535,128 @@ export default function BookingCalendar({
       </div>
 
       {selectedSlot && selectedService && selectedProfessionalName ? (
-        <div className={styles.selectionSummary} role="status">
-          <span>Selección preparada</span>
-          <strong>
-            {selectedService.name} · {selectedProfessionalName} ·{" "}
-            {selectedDate ? formatLongDate(selectedDate) : ""} · {selectedSlot.start}
-          </strong>
-          <small>En esta fase todavía no se guarda ninguna reserva.</small>
+        <div className={styles.confirmationArea}>
+          <div className={styles.selectionSummary} aria-live="polite">
+            <span>Selección preparada</span>
+            <dl className={styles.summaryGrid}>
+              <div>
+                <dt>Servicio</dt>
+                <dd>{selectedService.name}</dd>
+              </div>
+              <div>
+                <dt>Precio</dt>
+                <dd>{euroFormatter.format(selectedService.price)}</dd>
+              </div>
+              <div>
+                <dt>Duración</dt>
+                <dd>{selectedService.durationMinutes} min</dd>
+              </div>
+              <div>
+                <dt>Profesional</dt>
+                <dd>{selectedProfessionalName}</dd>
+              </div>
+              <div>
+                <dt>Fecha</dt>
+                <dd>{selectedDate ? formatLongDate(selectedDate) : ""}</dd>
+              </div>
+              <div>
+                <dt>Inicio</dt>
+                <dd>{selectedSlot.start}</dd>
+              </div>
+              <div>
+                <dt>Finalización</dt>
+                <dd>{selectedSlot.end}</dd>
+              </div>
+            </dl>
+            <small>En esta fase todavía no se guarda ninguna reserva.</small>
+          </div>
+
+          <form
+            className={styles.customerForm}
+            onSubmit={validateCustomer}
+            noValidate
+          >
+            <div className={styles.formHeading}>
+              <span>Datos del cliente</span>
+              <p>Completa los tres campos para validar la solicitud.</p>
+            </div>
+
+            <div className={styles.fieldGrid}>
+              <div className={styles.formField}>
+                <label htmlFor="booking-name">Nombre</label>
+                <input
+                  id="booking-name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  value={customer.name}
+                  required
+                  aria-invalid={Boolean(customerErrors.name)}
+                  aria-describedby={customerErrors.name ? "booking-name-error" : undefined}
+                  onChange={(event) => updateCustomer("name", event.target.value)}
+                />
+                {customerErrors.name ? (
+                  <span id="booking-name-error" className={styles.fieldError}>
+                    {customerErrors.name}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className={styles.formField}>
+                <label htmlFor="booking-phone">Teléfono</label>
+                <input
+                  id="booking-phone"
+                  name="phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={customer.phone}
+                  required
+                  maxLength={20}
+                  aria-invalid={Boolean(customerErrors.phone)}
+                  aria-describedby={customerErrors.phone ? "booking-phone-error" : undefined}
+                  onChange={(event) => updateCustomer("phone", event.target.value)}
+                />
+                {customerErrors.phone ? (
+                  <span id="booking-phone-error" className={styles.fieldError}>
+                    {customerErrors.phone}
+                  </span>
+                ) : null}
+              </div>
+
+              <div className={styles.formField}>
+                <label htmlFor="booking-email">Email</label>
+                <input
+                  id="booking-email"
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={customer.email}
+                  required
+                  aria-invalid={Boolean(customerErrors.email)}
+                  aria-describedby={customerErrors.email ? "booking-email-error" : undefined}
+                  onChange={(event) => updateCustomer("email", event.target.value)}
+                />
+                {customerErrors.email ? (
+                  <span id="booking-email-error" className={styles.fieldError}>
+                    {customerErrors.email}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <button className={styles.confirmButton} type="submit">
+              <span>CONFIRMAR RESERVA</span>
+              <span aria-hidden="true">→</span>
+            </button>
+
+            {formValidated ? (
+              <p className={styles.formSuccess} role="status">
+                Datos validados correctamente. La reserva todavía no se ha guardado.
+              </p>
+            ) : null}
+          </form>
         </div>
       ) : null}
     </div>

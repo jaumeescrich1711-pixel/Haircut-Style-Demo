@@ -256,6 +256,7 @@ export default async function Home() {
                 id: service.id,
                 name: service.name,
                 durationMinutes: service.durationMinutes,
+                price: service.price,
               }))}
               professionals={professionals}
               settings={bookingSettings}
