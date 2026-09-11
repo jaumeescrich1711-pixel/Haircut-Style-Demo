@@ -57,6 +57,26 @@ type CustomerForm = Record<CustomerField, string>;
 
 type CustomerFormErrors = Partial<Record<CustomerField, string>>;
 
+type ConfirmedBooking = {
+  id: number;
+  professional: {
+    id: number;
+    name: string;
+  };
+  service: {
+    id: number;
+    name: string;
+    price: number;
+    durationMinutes: number;
+  };
+  startDatetime: string;
+  endDatetime: string;
+  selectedAnyProfessional: boolean;
+  date: string;
+  start: string;
+  end: string;
+};
+
 type BookingCalendarProps = {
   services: ServiceOption[];
   professionals: ProfessionalOption[];
@@ -174,8 +194,13 @@ export default function BookingCalendar({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<CalendarSlot | null>(null);
   const [calendar, setCalendar] = useState<CalendarResponse | null>(null);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] =
+    useState<ConfirmedBooking | null>(null);
   const [customer, setCustomer] = useState<CustomerForm>({
     name: "",
     phone: "",
@@ -183,7 +208,6 @@ export default function BookingCalendar({
   });
   const [customerErrors, setCustomerErrors] =
     useState<CustomerFormErrors>({});
-  const [formValidated, setFormValidated] = useState(false);
 
   const selectedService = services.find(
     (service) => service.id === selectedServiceId,
@@ -217,9 +241,10 @@ export default function BookingCalendar({
     setSelectedSlot(null);
     setCalendar(null);
     setError(null);
+    setBookingError(null);
     setLoading(false);
     setCustomerErrors({});
-    setFormValidated(false);
+    setConfirmedBooking(null);
   }, [currentMonth]);
 
   function chooseProfessional(selection: ProfessionalSelection) {
@@ -229,9 +254,9 @@ export default function BookingCalendar({
     setSelectedSlot(null);
     setCalendar(null);
     setError(null);
+    setBookingError(null);
     setLoading(true);
     setCustomerErrors({});
-    setFormValidated(false);
   }
 
   function navigateMonth(amount: number) {
@@ -240,9 +265,9 @@ export default function BookingCalendar({
     setSelectedSlot(null);
     setCalendar(null);
     setError(null);
+    setBookingError(null);
     setLoading(true);
     setCustomerErrors({});
-    setFormValidated(false);
   }
 
   function updateCustomer(field: CustomerField, value: string) {
@@ -256,15 +281,79 @@ export default function BookingCalendar({
       delete nextErrors[field];
       return nextErrors;
     });
-    setFormValidated(false);
+    setBookingError(null);
   }
 
-  function validateCustomer(event: FormEvent<HTMLFormElement>) {
+  async function submitReservation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors = validateCustomerForm(customer);
     setCustomerErrors(nextErrors);
-    setFormValidated(Object.keys(nextErrors).length === 0);
+
+    if (
+      Object.keys(nextErrors).length > 0 ||
+      !selectedServiceId ||
+      selectedProfessional === null ||
+      !selectedDate ||
+      !selectedSlot
+    ) {
+      return;
+    }
+
+    setSubmitting(true);
+    setBookingError(null);
+
+    try {
+      const response = await fetch("/api/reservations", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceId: selectedServiceId,
+          professional: selectedProfessional,
+          date: selectedDate,
+          start: selectedSlot.start,
+          client: customer,
+        }),
+      });
+      const payload = (await response.json()) as {
+        ok: boolean;
+        code?: string;
+        message?: string;
+        booking?: Omit<ConfirmedBooking, "date" | "start" | "end">;
+      };
+
+      if (!response.ok || !payload.booking) {
+        const message =
+          payload.message ??
+          "No se ha podido guardar la reserva. Inténtalo de nuevo.";
+        setBookingError(message);
+
+        if (response.status === 409 || payload.code === "slot_unavailable") {
+          setSelectedSlot(null);
+          setCalendar(null);
+          setLoading(true);
+          setCalendarRefreshKey((current) => current + 1);
+        }
+
+        return;
+      }
+
+      setConfirmedBooking({
+        ...payload.booking,
+        date: selectedDate,
+        start: selectedSlot.start,
+        end: selectedSlot.end,
+      });
+    } catch {
+      setBookingError(
+        "No se ha podido contactar con la base de datos. Puedes volver a intentarlo.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   useEffect(() => {
@@ -335,7 +424,46 @@ export default function BookingCalendar({
       });
 
     return () => controller.abort();
-  }, [selectedProfessional, selectedServiceId, visibleMonth]);
+  }, [calendarRefreshKey, selectedProfessional, selectedServiceId, visibleMonth]);
+
+  if (confirmedBooking) {
+    return (
+      <div className={styles.confirmedState} aria-live="polite">
+        <span className={styles.confirmedEyebrow}>Reserva confirmada</span>
+        <h3>Tu cita está reservada</h3>
+        <p>
+          Supabase ha guardado la reserva y el horario ya no está disponible
+          para otros clientes.
+        </p>
+        <dl className={styles.confirmedDetails}>
+          <div>
+            <dt>Servicio</dt>
+            <dd>{confirmedBooking.service.name}</dd>
+          </div>
+          <div>
+            <dt>Profesional</dt>
+            <dd>{confirmedBooking.professional.name}</dd>
+          </div>
+          <div>
+            <dt>Fecha</dt>
+            <dd>{formatLongDate(confirmedBooking.date)}</dd>
+          </div>
+          <div>
+            <dt>Hora</dt>
+            <dd>
+              {confirmedBooking.start}–{confirmedBooking.end}
+            </dd>
+          </div>
+        </dl>
+        {confirmedBooking.selectedAnyProfessional ? (
+          <small>
+            Elegiste Cualquiera y el sistema te ha asignado a{" "}
+            {confirmedBooking.professional.name}.
+          </small>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.bookingFlow}>
@@ -469,7 +597,7 @@ export default function BookingCalendar({
                         setSelectedDate(day.date);
                         setSelectedSlot(null);
                         setCustomerErrors({});
-                        setFormValidated(false);
+                        setBookingError(null);
                       }}
                       key={day.date}
                     >
@@ -514,7 +642,7 @@ export default function BookingCalendar({
                         onClick={() => {
                           setSelectedSlot(slot);
                           setCustomerErrors({});
-                          setFormValidated(false);
+                          setBookingError(null);
                         }}
                         key={slot.start}
                       >
@@ -530,6 +658,11 @@ export default function BookingCalendar({
                 </div>
               )}
             </div>
+            {bookingError && !selectedSlot ? (
+              <p className={styles.bookingError} role="alert">
+                {bookingError}
+              </p>
+            ) : null}
           </div>
         )}
       </div>
@@ -568,12 +701,15 @@ export default function BookingCalendar({
                 <dd>{selectedSlot.end}</dd>
               </div>
             </dl>
-            <small>En esta fase todavía no se guarda ninguna reserva.</small>
+            <small>
+              Al confirmar, el servidor comprobará de nuevo que el horario
+              sigue libre antes de guardarlo.
+            </small>
           </div>
 
           <form
             className={styles.customerForm}
-            onSubmit={validateCustomer}
+            onSubmit={submitReservation}
             noValidate
           >
             <div className={styles.formHeading}>
@@ -646,14 +782,18 @@ export default function BookingCalendar({
               </div>
             </div>
 
-            <button className={styles.confirmButton} type="submit">
-              <span>CONFIRMAR RESERVA</span>
+            <button
+              className={styles.confirmButton}
+              type="submit"
+              disabled={submitting}
+            >
+              <span>{submitting ? "CONFIRMANDO…" : "CONFIRMAR RESERVA"}</span>
               <span aria-hidden="true">→</span>
             </button>
 
-            {formValidated ? (
-              <p className={styles.formSuccess} role="status">
-                Datos validados correctamente. La reserva todavía no se ha guardado.
+            {bookingError ? (
+              <p className={styles.bookingError} role="alert">
+                {bookingError}
               </p>
             ) : null}
           </form>

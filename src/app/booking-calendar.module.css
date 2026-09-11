@@ -540,19 +540,103 @@
   color: #b9935a;
 }
 
+.confirmButton:disabled {
+  border-color: #65543b;
+  background: #65543b;
+  color: #17130f;
+  cursor: wait;
+}
+
 .confirmButton span:last-child {
   font-size: 1rem;
 }
 
-.formSuccess {
+.bookingError {
   margin: 0;
   padding: 0.75rem 0.9rem;
-  border-left: 2px solid #b9935a;
-  background: rgb(185 147 90 / 8%);
-  color: #d8c8ad;
+  border-left: 2px solid #b86f61;
+  background: rgb(184 111 97 / 10%);
+  color: #dda69b;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.74rem;
   line-height: 1.45;
+}
+
+.confirmedState {
+  display: grid;
+  min-width: 0;
+  gap: 1.1rem;
+  padding: clamp(1.4rem, 4vw, 2.4rem);
+  border: 1px solid rgb(185 147 90 / 55%);
+  border-left: 3px solid #b9935a;
+  background:
+    radial-gradient(circle at 90% 10%, rgb(185 147 90 / 14%), transparent 35%),
+    #0a0a0a;
+}
+
+.confirmedEyebrow {
+  color: #b9935a;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.confirmedState h3,
+.confirmedState p,
+.confirmedState dl {
+  margin: 0;
+}
+
+.confirmedState h3 {
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.45rem, 4vw, 2.2rem);
+  font-weight: 400;
+}
+
+.confirmedState > p {
+  max-width: 52ch;
+  color: #968e83;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.confirmedDetails {
+  display: grid;
+  gap: 0.85rem 1.2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-top: 1rem;
+  border-top: 1px solid rgb(242 238 230 / 10%);
+}
+
+.confirmedDetails div {
+  min-width: 0;
+}
+
+.confirmedDetails dt {
+  color: #766e63;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.confirmedDetails dd {
+  margin: 0.3rem 0 0;
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.confirmedState small {
+  color: #c9b58f;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
+  line-height: 1.5;
 }
 
 .optionButton:focus-visible,
@@ -606,6 +690,10 @@
   .fieldGrid {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .confirmedDetails {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 390px) {
@@ -622,6 +710,10 @@
   }
 
   .summaryGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .confirmedDetails {
     grid-template-columns: minmax(0, 1fr);
   }
 }

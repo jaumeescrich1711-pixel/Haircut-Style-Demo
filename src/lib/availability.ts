@@ -1,5 +1,9 @@
 import "server-only";
 
+import {
+  getBusyReservationIntervals,
+  type BusyReservationInterval,
+} from "@/lib/reservations";
 import { createClient } from "@/lib/supabase/server";
 
 const HAIRCUT_STYLE_BUSINESS_ID = 1;
@@ -55,6 +59,7 @@ export type ProfessionalAvailability = {
   weeklySchedule: AvailabilityPeriod[];
   overrides: AppliedAvailabilityOverride[];
   blocks: AvailabilityPeriod[];
+  reservations: AvailabilityPeriod[];
   availablePeriods: AvailabilityPeriod[];
 };
 
@@ -288,6 +293,7 @@ function calculateProfessionalAvailability(
   schedules: ScheduleRow[],
   blocks: AvailabilityBlockRow[],
   overrides: AvailabilityOverrideRow[],
+  reservations: BusyReservationInterval[],
 ): ProfessionalAvailability {
   const dayOfWeek = getIsoDayOfWeek(date);
   const nextDate = addDays(date, 1);
@@ -329,6 +335,16 @@ function calculateProfessionalAvailability(
       start: Math.max(dayStart, Date.parse(block.start_datetime)),
       end: Math.min(dayEnd, Date.parse(block.end_datetime)),
     }));
+  const reservationIntervals = reservations
+    .filter(
+      (reservation) =>
+        Date.parse(reservation.startDatetime) < dayEnd &&
+        Date.parse(reservation.endDatetime) > dayStart,
+    )
+    .map((reservation) => ({
+      start: Math.max(dayStart, Date.parse(reservation.startDatetime)),
+      end: Math.min(dayEnd, Date.parse(reservation.endDatetime)),
+    }));
 
   let source: ProfessionalAvailability["source"] = "weekly";
   let availableIntervals = weeklyIntervals;
@@ -343,7 +359,7 @@ function calculateProfessionalAvailability(
 
   availableIntervals = subtractUnavailableIntervals(
     availableIntervals,
-    [...unavailableOverrides, ...blockIntervals],
+    [...unavailableOverrides, ...blockIntervals, ...reservationIntervals],
   );
 
   return {
@@ -363,6 +379,7 @@ function calculateProfessionalAvailability(
       end: interval ? formatLocalTime(interval.end) : "24:00",
     })),
     blocks: toAvailabilityPeriods(blockIntervals),
+    reservations: toAvailabilityPeriods(reservationIntervals),
     availablePeriods: toAvailabilityPeriods(availableIntervals),
   };
 }
@@ -410,7 +427,13 @@ export async function getProfessionalAvailabilityRange(
   const rangeStart = zonedDateTimeToTimestamp(firstDate, "00:00");
   const rangeEnd = zonedDateTimeToTimestamp(addDays(lastDate, 1), "00:00");
   const supabase = createClient();
-  const [professional, scheduleResult, blocksResult, overridesResult] =
+  const [
+    professional,
+    scheduleResult,
+    blocksResult,
+    overridesResult,
+    reservations,
+  ] =
     await Promise.all([
       getActiveProfessional(professionalId),
       supabase
@@ -441,6 +464,11 @@ export async function getProfessionalAvailabilityRange(
         .order("date", { ascending: true })
         .order("start_time", { ascending: true, nullsFirst: true })
         .returns<AvailabilityOverrideRow[]>(),
+      getBusyReservationIntervals(
+        [professionalId],
+        new Date(rangeStart),
+        new Date(rangeEnd),
+      ),
     ]);
 
   if (scheduleResult.error || blocksResult.error || overridesResult.error) {
@@ -460,6 +488,7 @@ export async function getProfessionalAvailabilityRange(
       scheduleResult.data,
       blocksResult.data,
       overridesResult.data,
+      reservations,
     ),
   );
 }

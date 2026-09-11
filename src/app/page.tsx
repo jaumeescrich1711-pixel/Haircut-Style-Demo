@@ -241,7 +241,8 @@ export default async function Home() {
             </h2>
             <p>
               Elige servicio, profesional y uno de los horarios realmente
-              disponibles. No se guardará nada hasta el siguiente paso.
+              disponibles. La confirmación se verifica y se guarda de forma
+              segura en Supabase.
             </p>
           </div>
 

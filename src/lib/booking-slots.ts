@@ -89,7 +89,7 @@ export async function getBookableSchedule(
       name: service.name,
       durationMinutes: service.durationMinutes,
     },
-    // Las futuras reservas se descontarán como intervalos ocupados en
+    // Las reservas confirmadas ya se descuentan como intervalos ocupados en
     // availability.ts antes de llegar a este generador.
     slots: generateBookableSlots(
       availability.availablePeriods,
