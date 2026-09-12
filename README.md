@@ -27,9 +27,13 @@ URL del proyecto y su clave publicable. No uses una `secret key` ni una clave
    panel **Connect** de tu proyecto de Supabase.
 3. Reinicia `pnpm dev` después de cambiar las variables.
 
-`.env.local` está ignorado por Git. Las variables llevan el prefijo
+`.env.local` está ignorado por Git. Las variables de Supabase llevan el prefijo
 `NEXT_PUBLIC_` porque la clave publicable está diseñada para código cliente; la
 protección de los datos debe aplicarse con Row Level Security (RLS) en Supabase.
+El email de confirmación necesita además `RESEND_API_KEY` y
+`RESEND_FROM_EMAIL`. Son variables exclusivas del servidor y nunca deben llevar
+el prefijo `NEXT_PUBLIC_`. El remitente debe pertenecer a un dominio verificado
+en Resend.
 
 Hay clientes preparados para componentes de navegador y servidor en
 `src/lib/supabase/`. La ruta `GET /api/supabase/health` realiza una lectura
@@ -56,12 +60,37 @@ formulario obligatorio de nombre, teléfono y email.
 
 La creación real usa `POST /api/reservations`. El navegador envía únicamente la
 selección y los datos del cliente; el endpoint invoca
-`public.create_public_reservation`, que vuelve a comprobar dentro de Supabase el
-servicio, el profesional, el horario, los bloqueos, las excepciones y las
-reservas solapadas. La función obtiene de nuevo el nombre, precio y duración del
-servicio para guardar el snapshot y genera el `management_token` con 32 bytes
-aleatorios. Si se eligió `Cualquiera`, asigna entre los profesionales libres al
-que tenga menor carga para ese día.
+`public.create_public_reservation_with_management`, que delega la creación atómica en
+`public.create_public_reservation`. Supabase vuelve a comprobar el servicio, el
+profesional, el horario, los bloqueos, las excepciones y las reservas
+solapadas. La función obtiene de nuevo el nombre, precio y duración del servicio
+para guardar el snapshot y genera el `management_token` con 32 bytes aleatorios.
+Si se eligió `Cualquiera`, asigna entre los profesionales libres al que tenga
+menor carga para ese día.
+
+Después de que Supabase confirme la reserva, la ruta envía desde el servidor el
+email de confirmación mediante Resend usando los datos guardados. Cada intento
+crea un registro `pending` en `public.email_logs`: pasa a `sent` con el
+identificador de Resend y la fecha de envío, o a `error` con un mensaje
+sanitizado. El mismo estado se refleja en `public.reservations.email_status`. Un
+fallo del email no cancela ni borra la reserva y la respuesta al cliente sigue
+siendo de reserva confirmada.
+
+La migración
+`supabase/migrations/2026091201_reservation_confirmation_emails.sql` mantiene RLS,
+revoca el acceso directo a `public.email_logs` y expone únicamente dos RPC
+limitadas. La primera crea la reserva y su log pendiente; la segunda solo puede
+registrar el resultado si recibe el token aleatorio de un único envío. En la
+base se conserva únicamente el hash de ese token y nunca se expone el
+`management_token` de la reserva.
+
+La migración
+`supabase/migrations/2026091202_public_calendar_and_client_cancellation.sql`
+añade la consulta pública limitada por `management_token`, la cancelación atómica
+en servidor, el evento y la notificación correspondientes, y el registro del
+email de cancelación. Las tablas siguen sin permitir escritura directa a
+`anon` ni `authenticated`. El archivo `.ics` se genera bajo demanda a partir de
+la reserva guardada y no accede al calendario personal del cliente.
 
 La migración
 `supabase/migrations/20260912_atomic_public_reservations.sql` mantiene RLS,

@@ -1,4 +1,5 @@
 import { parseIsoDate } from "@/lib/calendar-date";
+import { attemptReservationConfirmationEmail } from "@/lib/reservation-email-delivery";
 import {
   createReservation,
   ReservationUnavailableError,
@@ -95,21 +96,41 @@ export async function POST(request: Request) {
   }
 
   try {
-    const booking = await createReservation({
-      serviceId,
-      professionalId,
-      selectedAnyProfessional: professionalSelection === "any",
-      date: payload.date,
-      start: payload.start,
-      client: {
-        name: payload.client!.name as string,
-        phone: payload.client!.phone as string,
-        email: payload.client!.email as string,
+    const created = await createReservation(
+      {
+        serviceId,
+        professionalId,
+        selectedAnyProfessional: professionalSelection === "any",
+        date: payload.date,
+        start: payload.start,
+        client: {
+          name: payload.client!.name as string,
+          phone: payload.client!.phone as string,
+          email: payload.client!.email as string,
+        },
       },
-    });
+      new URL(request.url).origin,
+    );
+
+    try {
+      const emailResult = await attemptReservationConfirmationEmail(
+        created.email,
+      );
+
+      if (!emailResult.recorded) {
+        console.error("No se ha podido registrar el resultado del email.", {
+          reservationId: created.booking.id,
+          emailStatus: emailResult.status,
+        });
+      }
+    } catch {
+      console.error("Ha fallado el procesamiento del email de confirmación.", {
+        reservationId: created.booking.id,
+      });
+    }
 
     return Response.json(
-      { ok: true, booking },
+      { ok: true, booking: created.booking },
       {
         status: 201,
         headers: { "Cache-Control": "no-store" },

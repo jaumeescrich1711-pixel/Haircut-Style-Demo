@@ -72,6 +72,8 @@ type ConfirmedBooking = {
   startDatetime: string;
   endDatetime: string;
   selectedAnyProfessional: boolean;
+  calendarUrl: string;
+  cancellationUrl: string;
   date: string;
   start: string;
   end: string;
@@ -461,6 +463,15 @@ export default function BookingCalendar({
             {confirmedBooking.professional.name}.
           </small>
         ) : null}
+        <div className={styles.confirmedActions}>
+          <a href={confirmedBooking.calendarUrl}>AÑADIR AL CALENDARIO</a>
+          <a
+            className={styles.cancelLink}
+            href={confirmedBooking.cancellationUrl}
+          >
+            CANCELAR MI CITA
+          </a>
+        </div>
       </div>
     );
   }

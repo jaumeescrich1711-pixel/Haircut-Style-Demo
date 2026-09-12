@@ -1,0 +1,136 @@
+.page {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background:
+    radial-gradient(circle at 85% 10%, rgb(185 147 90 / 16%), transparent 38%),
+    #080808;
+}
+
+.card {
+  display: grid;
+  width: min(100%, 680px);
+  gap: 1.25rem;
+  padding: clamp(1.4rem, 5vw, 3rem);
+  border: 1px solid rgb(185 147 90 / 50%);
+  border-left: 3px solid #b9935a;
+  background: #0d0d0d;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 45%);
+}
+
+.eyebrow {
+  color: #b9935a;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.card h1,
+.card p,
+.card dl {
+  margin: 0;
+}
+
+.card h1 {
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 7vw, 3.3rem);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.card > p,
+.actions > p,
+.result p {
+  color: #a79d90;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.4rem;
+  padding: 1.3rem 0;
+  border-block: 1px solid rgb(242 238 230 / 10%);
+}
+
+.details div {
+  min-width: 0;
+}
+
+.details dt {
+  color: #766e63;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.details dd {
+  margin: 0.35rem 0 0;
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.actions,
+.result {
+  display: grid;
+  gap: 1rem;
+}
+
+.actions button,
+.result a,
+.backLink {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.2rem;
+  border: 1px solid #b9935a;
+  background: #b9935a;
+  color: #090909;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.actions button:focus-visible,
+.result a:focus-visible,
+.backLink:focus-visible {
+  outline: 2px solid #f2eee6;
+  outline-offset: 3px;
+}
+
+.error {
+  padding: 0.8rem;
+  border-left: 2px solid #b86f61;
+  background: rgb(184 111 97 / 10%);
+  color: #dda69b !important;
+}
+
+.result strong {
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+@media (max-width: 520px) {
+  .details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
