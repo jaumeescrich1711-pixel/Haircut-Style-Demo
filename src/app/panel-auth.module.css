@@ -1,0 +1,222 @@
+.authPage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  overflow: hidden;
+  padding: 2rem 1rem;
+  background:
+    linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px),
+    radial-gradient(circle at 78% 28%, rgb(185 147 90 / 17%), transparent 28%),
+    #090909;
+  background-size: 64px 64px, 64px 64px, auto, auto;
+}
+
+.authGlow {
+  position: absolute;
+  z-index: -1;
+  width: min(64vw, 46rem);
+  aspect-ratio: 1;
+  border: 1px solid rgb(185 147 90 / 20%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 8rem rgb(185 147 90 / 2%);
+}
+
+.authCard {
+  width: min(100%, 31rem);
+  padding: clamp(2rem, 6vw, 4rem);
+  border: 1px solid rgb(242 238 230 / 13%);
+  background: rgb(14 14 14 / 94%);
+  box-shadow: 0 2rem 6rem rgb(0 0 0 / 42%);
+}
+
+.brand {
+  display: inline-flex;
+  flex-direction: column;
+  color: #f2eee6;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 0.85;
+  text-decoration: none;
+}
+
+.brand strong {
+  margin-left: 1.15rem;
+  color: #b9935a;
+  font-size: inherit;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 3rem;
+  color: #b9935a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+}
+
+.eyebrow::before {
+  width: 2.25rem;
+  height: 1px;
+  background: #b9935a;
+  content: "";
+}
+
+.authCard h1 {
+  margin: 1rem 0 0;
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.1rem, 7vw, 3rem);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.intro {
+  margin: 1rem 0 0;
+  color: #9e988e;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.55rem;
+  color: #d8d2c7;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.field input {
+  width: 100%;
+  min-height: 3.35rem;
+  border: 1px solid rgb(242 238 230 / 15%);
+  border-radius: 0;
+  outline: none;
+  background: #0b0b0b;
+  color: #f2eee6;
+  padding: 0 1rem;
+  font-size: 1rem;
+  letter-spacing: normal;
+  text-transform: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.field input:focus {
+  border-color: #b9935a;
+  box-shadow: 0 0 0 3px rgb(185 147 90 / 12%);
+}
+
+.passwordField {
+  position: relative;
+  display: block;
+}
+
+.passwordField input {
+  padding-right: 6.5rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 0.85rem;
+  border: 0;
+  background: transparent;
+  color: #b9935a;
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  transform: translateY(-50%);
+}
+
+.primaryButton,
+.primaryLink {
+  display: inline-flex;
+  min-height: 3.65rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b9935a;
+  background: #b9935a;
+  color: #0b0b0b;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.17em;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.primaryButton:hover,
+.primaryLink:hover {
+  border-color: #f2eee6;
+  background: #f2eee6;
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.textLink {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: #bbb4a8;
+  font-size: 0.82rem;
+  text-underline-offset: 0.25rem;
+}
+
+.error,
+.success {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-left: 2px solid #b9935a;
+  background: rgb(185 147 90 / 8%);
+  color: #ddd5c9;
+  font-size: 0.85rem;
+  letter-spacing: normal;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.error {
+  border-color: #ca756c;
+  background: rgb(202 117 108 / 8%);
+}
+
+.completedState {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  color: #c9c2b7;
+  line-height: 1.6;
+}
+
+@media (max-width: 440px) {
+  .authPage {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .authCard {
+    display: flex;
+    width: 100%;
+    min-height: 100svh;
+    flex-direction: column;
+    justify-content: center;
+    border: 0;
+    padding: 2rem 1.4rem;
+  }
+}

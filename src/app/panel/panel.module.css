@@ -1,0 +1,321 @@
+.panel {
+  display: grid;
+  min-height: 100svh;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  background: #0a0a0a;
+  color: #f2eee6;
+}
+
+.sidebar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  border-right: 1px solid rgb(242 238 230 / 10%);
+  padding: 2rem 1.5rem;
+  background: #0d0d0d;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  line-height: 0.83;
+}
+
+.brand strong {
+  margin-left: 1.2rem;
+  color: #b9935a;
+}
+
+.nav {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 4.5rem;
+}
+
+.navItem,
+.activeNavItem {
+  display: grid;
+  min-height: 3.15rem;
+  grid-template-columns: 2.1rem 1fr;
+  align-items: center;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: #746f67;
+  cursor: default;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+}
+
+.navItem span,
+.activeNavItem span {
+  color: #5d5953;
+  font-size: 0.59rem;
+  letter-spacing: 0.12em;
+}
+
+.activeNavItem {
+  border-left-color: #b9935a;
+  color: #f2eee6;
+}
+
+.activeNavItem span {
+  color: #b9935a;
+}
+
+.account {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: auto;
+  padding-top: 2rem;
+  border-top: 1px solid rgb(242 238 230 / 9%);
+}
+
+.account span {
+  color: #7f7a72;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.account button {
+  width: max-content;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #c8c0b4;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.workspace {
+  min-width: 0;
+  background:
+    radial-gradient(circle at 92% 2%, rgb(185 147 90 / 9%), transparent 24rem),
+    #0a0a0a;
+}
+
+.topbar {
+  display: flex;
+  min-height: 5.25rem;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(242 238 230 / 9%);
+  padding: 0 clamp(1.25rem, 4vw, 3.5rem);
+}
+
+.topbar p {
+  margin: 0;
+  color: #8f887e;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #aaa297;
+  font-size: 0.7rem;
+}
+
+.status::before {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: #b9935a;
+  content: "";
+  box-shadow: 0 0 0 4px rgb(185 147 90 / 10%);
+}
+
+.menuButton {
+  display: none;
+}
+
+.content {
+  width: min(100%, 86rem);
+  padding: clamp(2.5rem, 6vw, 6rem) clamp(1.25rem, 5vw, 5rem);
+}
+
+.heading > p,
+.todayCard > div:first-child p {
+  margin: 0;
+  color: #b9935a;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+.heading h1 {
+  margin: 0.8rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.7rem, 6vw, 5.75rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.heading > span {
+  display: block;
+  margin-top: 1.15rem;
+  color: #8e887f;
+}
+
+.todayCard {
+  margin-top: clamp(3rem, 7vw, 6rem);
+  border: 1px solid rgb(242 238 230 / 12%);
+  background: linear-gradient(135deg, #111, #0c0c0c);
+}
+
+.todayCard > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  border-bottom: 1px solid rgb(242 238 230 / 9%);
+  padding: 1.5rem;
+}
+
+.cardNumber {
+  color: #4d4943;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+}
+
+.todayCard h2 {
+  margin: 0.35rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 400;
+}
+
+.placeholder {
+  display: grid;
+  min-height: 15rem;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.placeholder span {
+  color: #b9935a;
+  font-size: 3rem;
+  font-weight: 200;
+}
+
+.placeholder p {
+  max-width: 28rem;
+  margin: -2rem 0 0;
+  color: #77716a;
+  line-height: 1.6;
+}
+
+.futureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.futureGrid > div {
+  min-height: 7rem;
+  border: 1px solid rgb(242 238 230 / 8%);
+  padding: 1.25rem;
+  color: #6e6962;
+}
+
+.futureGrid span {
+  color: #8d744e;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.futureGrid p {
+  margin: 1.1rem 0 0;
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .panel {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(82vw, 19rem);
+    transform: translateX(-101%);
+    transition: transform 180ms ease;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .menuButton {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-content: center;
+    gap: 0.4rem;
+    border: 1px solid rgb(242 238 230 / 14%);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .menuButton span {
+    width: 1rem;
+    height: 1px;
+    background: #f2eee6;
+  }
+
+  .backdrop {
+    position: fixed;
+    z-index: 10;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgb(0 0 0 / 68%);
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    min-height: 4.5rem;
+  }
+
+  .topbar p {
+    display: none;
+  }
+
+  .content {
+    padding-top: 2.5rem;
+  }
+
+  .heading h1 {
+    font-size: clamp(2.5rem, 13vw, 3.7rem);
+  }
+
+  .todayCard > div:first-child {
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .futureGrid {
+    grid-template-columns: 1fr;
+  }
+}
