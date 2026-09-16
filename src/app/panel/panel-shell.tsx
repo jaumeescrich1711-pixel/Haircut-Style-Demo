@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import type { TodayReservation } from "@/lib/auth/today-reservations";
 import { createClient } from "@/lib/supabase/client";
 
 import styles from "./panel.module.css";
@@ -18,13 +19,25 @@ const navigation = [
 export function PanelShell({
   businessName,
   role,
+  reservations,
+  reservationsAvailable,
+  timeZone,
 }: {
   businessName: string;
   role: string;
+  reservations: TodayReservation[];
+  reservationsAvailable: boolean;
+  timeZone: string;
 }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const timeFormatter = new Intl.DateTimeFormat("es-ES", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone,
+  });
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -96,10 +109,35 @@ export function PanelShell({
                 <h2 id="today-title">Reservas de hoy</h2>
               </div>
             </div>
-            <div className={styles.placeholder}>
-              <span aria-hidden="true">—</span>
-              <p>La agenda diaria aparecerá aquí en la siguiente fase.</p>
-            </div>
+            {!reservationsAvailable ? (
+              <div className={styles.placeholder} role="status">
+                <span aria-hidden="true">!</span>
+                <p>No se han podido cargar las reservas. Vuelve a intentarlo.</p>
+              </div>
+            ) : reservations.length === 0 ? (
+              <div className={styles.placeholder}>
+                <span aria-hidden="true">—</span>
+                <p>No hay reservas para hoy.</p>
+              </div>
+            ) : (
+              <ol className={styles.reservationList}>
+                {reservations.map((reservation) => (
+                  <li className={styles.reservationItem} key={reservation.id}>
+                    <time dateTime={reservation.startDatetime}>
+                      {timeFormatter.format(new Date(reservation.startDatetime))}
+                    </time>
+                    <div className={styles.reservationDetails}>
+                      <strong>{reservation.clientName}</strong>
+                      <span>{reservation.serviceName}</span>
+                    </div>
+                    <div className={styles.reservationProfessional}>
+                      <span>PROFESIONAL</span>
+                      <strong>{reservation.professionalName}</strong>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
           </section>
 
           <div className={styles.futureGrid} aria-label="Próximas funciones">
