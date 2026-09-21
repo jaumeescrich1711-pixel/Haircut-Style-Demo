@@ -1,0 +1,255 @@
+"use client";
+
+import { useMemo, useRef, useState } from "react";
+
+import type {
+  BusinessCalendarMonth,
+  CalendarMonthResult,
+} from "@/lib/auth/calendar-reservations";
+
+import styles from "./panel.module.css";
+
+const weekDays = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+
+function shiftMonth(month: string, amount: number) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const next = new Date(Date.UTC(year, monthNumber - 1 + amount, 1));
+
+  return `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthCells(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const firstDay = new Date(Date.UTC(year, monthNumber - 1, 1));
+  const offset = (firstDay.getUTCDay() + 6) % 7;
+  const days = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const cells: Array<number | null> = Array.from({ length: offset }, () => null);
+
+  for (let day = 1; day <= days; day += 1) cells.push(day);
+  while (cells.length % 7 !== 0 || cells.length < 35) cells.push(null);
+
+  return cells;
+}
+
+function isoDate(month: string, day: number) {
+  return `${month}-${String(day).padStart(2, "0")}`;
+}
+
+function defaultSelectedDate(calendar: BusinessCalendarMonth) {
+  return calendar.today.startsWith(`${calendar.month}-`)
+    ? calendar.today
+    : `${calendar.month}-01`;
+}
+
+export function PanelCalendar({
+  initialResult,
+}: {
+  initialResult: CalendarMonthResult;
+}) {
+  const [calendar, setCalendar] = useState(initialResult.calendar);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    defaultSelectedDate(initialResult.calendar),
+  );
+  const [professionalFilter, setProfessionalFilter] = useState<number | "all">(
+    "all",
+  );
+  const [loading, setLoading] = useState(false);
+  const [available, setAvailable] = useState(initialResult.ok);
+  const requestNumber = useRef(0);
+
+  const cells = useMemo(() => monthCells(calendar.month), [calendar.month]);
+  const monthLabel = useMemo(() => {
+    const [year, monthNumber] = calendar.month.split("-").map(Number);
+
+    return new Intl.DateTimeFormat("es-ES", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(Date.UTC(year, monthNumber - 1, 1)));
+  }, [calendar.month]);
+  const selectedDateLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+      }).format(new Date(`${selectedDate}T12:00:00Z`)),
+    [selectedDate],
+  );
+  const appointmentCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    calendar.reservations.forEach((reservation) => {
+      counts.set(reservation.localDate, (counts.get(reservation.localDate) ?? 0) + 1);
+    });
+
+    return counts;
+  }, [calendar.reservations]);
+  const visibleProfessionals = calendar.professionals.filter(
+    (professional) =>
+      professionalFilter === "all" || professional.id === professionalFilter,
+  );
+
+  async function loadMonth(nextMonth: string) {
+    const currentRequest = requestNumber.current + 1;
+    requestNumber.current = currentRequest;
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `/api/panel/calendar?month=${encodeURIComponent(nextMonth)}`,
+        { cache: "no-store" },
+      );
+      const result = (await response.json()) as CalendarMonthResult;
+
+      if (!response.ok || !result.ok || currentRequest !== requestNumber.current) {
+        throw new Error("calendar_unavailable");
+      }
+
+      setCalendar(result.calendar);
+      setSelectedDate(defaultSelectedDate(result.calendar));
+      setProfessionalFilter("all");
+      setAvailable(true);
+    } catch {
+      if (currentRequest === requestNumber.current) setAvailable(false);
+    } finally {
+      if (currentRequest === requestNumber.current) setLoading(false);
+    }
+  }
+
+  return (
+    <section className={styles.calendarWorkspace} aria-label="Calendario del negocio">
+      <div className={styles.calendarPanel}>
+        <div className={styles.calendarToolbar}>
+          <button
+            aria-label="Mes anterior"
+            disabled={loading}
+            onClick={() => loadMonth(shiftMonth(calendar.month, -1))}
+            type="button"
+          >
+            ←
+          </button>
+          <h2 aria-live="polite">{monthLabel}</h2>
+          <button
+            aria-label="Mes siguiente"
+            disabled={loading}
+            onClick={() => loadMonth(shiftMonth(calendar.month, 1))}
+            type="button"
+          >
+            →
+          </button>
+        </div>
+
+        <div className={styles.professionalFilters} aria-label="Filtrar profesional">
+          <button
+            aria-pressed={professionalFilter === "all"}
+            onClick={() => setProfessionalFilter("all")}
+            type="button"
+          >
+            Todos
+          </button>
+          {calendar.professionals.map((professional) => (
+            <button
+              aria-pressed={professionalFilter === professional.id}
+              key={professional.id}
+              onClick={() => setProfessionalFilter(professional.id)}
+              type="button"
+            >
+              {professional.name}
+            </button>
+          ))}
+        </div>
+
+        {!available ? (
+          <div className={styles.calendarError} role="status">
+            <p>No se ha podido cargar este mes.</p>
+            <button onClick={() => loadMonth(calendar.month)} type="button">
+              REINTENTAR
+            </button>
+          </div>
+        ) : null}
+
+        <div className={`${styles.monthGrid} ${loading ? styles.monthGridLoading : ""}`}>
+          {weekDays.map((day) => (
+            <span className={styles.weekDay} key={day}>
+              {day}
+            </span>
+          ))}
+          {cells.map((day, index) => {
+            if (day === null) {
+              return <span className={styles.emptyDay} key={`empty-${index}`} />;
+            }
+
+            const date = isoDate(calendar.month, day);
+            const count = appointmentCounts.get(date) ?? 0;
+
+            return (
+              <button
+                aria-label={`${day} de ${monthLabel}${count ? `, ${count} ${count === 1 ? "cita" : "citas"}` : ""}`}
+                aria-pressed={selectedDate === date}
+                className={styles.calendarDay}
+                key={date}
+                onClick={() => setSelectedDate(date)}
+                type="button"
+              >
+                <span>{day}</span>
+                {count ? <small>{count}</small> : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <section className={styles.dayAgenda} aria-labelledby="agenda-title">
+        <div className={styles.agendaHeader}>
+          <p>AGENDA DIARIA</p>
+          <h2 id="agenda-title">{selectedDateLabel}</h2>
+        </div>
+        <div
+          className={`${styles.professionalColumns} ${professionalFilter !== "all" ? styles.singleProfessionalColumn : ""}`}
+        >
+          {visibleProfessionals.map((professional) => {
+            const appointments = calendar.reservations.filter(
+              (reservation) =>
+                reservation.localDate === selectedDate &&
+                reservation.professionalId === professional.id,
+            );
+
+            return (
+              <section className={styles.professionalAgenda} key={professional.id}>
+                <div className={styles.professionalHeading}>
+                  <span aria-hidden="true" />
+                  <h3>{professional.name}</h3>
+                  <small>
+                    {appointments.length} {appointments.length === 1 ? "cita" : "citas"}
+                  </small>
+                </div>
+                {appointments.length === 0 ? (
+                  <p className={styles.emptyAgenda}>Sin citas para este día.</p>
+                ) : (
+                  <ol>
+                    {appointments.map((appointment) => (
+                      <li key={appointment.id}>
+                        <time dateTime={appointment.startDatetime}>
+                          {appointment.localStart}
+                        </time>
+                        <div>
+                          <strong>{appointment.clientName}</strong>
+                          <span>{appointment.serviceName}</span>
+                        </div>
+                        <small>
+                          {appointment.localStart}–{appointment.localEnd}
+                        </small>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </section>
+    </section>
+  );
+}

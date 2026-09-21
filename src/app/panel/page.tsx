@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getPanelIdentity } from "@/lib/auth/business-access";
+import { getMyCalendarMonth } from "@/lib/auth/calendar-reservations";
 import { getMyTodayReservations } from "@/lib/auth/today-reservations";
 
 import { PanelShell } from "./panel-shell";
@@ -18,11 +19,15 @@ export default async function PanelPage() {
     redirect("/login?error=unauthorized");
   }
 
-  const today = await getMyTodayReservations();
+  const [today, calendar] = await Promise.all([
+    getMyTodayReservations(),
+    getMyCalendarMonth(),
+  ]);
 
   return (
     <PanelShell
       businessName={identity.access.business_name}
+      initialCalendar={calendar}
       role={identity.access.role ?? "equipo"}
       reservations={today.reservations}
       reservationsAvailable={today.ok}

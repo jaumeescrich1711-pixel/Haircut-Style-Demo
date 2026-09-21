@@ -297,6 +297,294 @@
   margin: 1.1rem 0 0;
 }
 
+.calendarWorkspace {
+  display: grid;
+  gap: 1rem;
+  margin-top: clamp(2.5rem, 6vw, 5rem);
+}
+
+.calendarPanel,
+.dayAgenda {
+  border: 1px solid rgb(242 238 230 / 12%);
+  background: linear-gradient(135deg, #111, #0c0c0c);
+}
+
+.calendarToolbar {
+  display: grid;
+  grid-template-columns: 3rem 1fr 3rem;
+  align-items: center;
+  border-bottom: 1px solid rgb(242 238 230 / 9%);
+  padding: 1.25rem;
+}
+
+.calendarToolbar h2,
+.agendaHeader h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.45rem, 3vw, 2.1rem);
+  font-weight: 400;
+  text-transform: capitalize;
+}
+
+.calendarToolbar h2 {
+  text-align: center;
+}
+
+.calendarToolbar button {
+  width: 2.65rem;
+  height: 2.65rem;
+  border: 1px solid rgb(242 238 230 / 13%);
+  background: transparent;
+  color: #d0ad74;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.calendarToolbar button:last-child {
+  justify-self: end;
+}
+
+.calendarToolbar button:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+.professionalFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  border-bottom: 1px solid rgb(242 238 230 / 8%);
+  padding: 1rem 1.25rem;
+}
+
+.professionalFilters button {
+  min-height: 2.35rem;
+  border: 1px solid rgb(242 238 230 / 13%);
+  padding: 0 1rem;
+  background: transparent;
+  color: #8f887e;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.professionalFilters button[aria-pressed="true"] {
+  border-color: #b9935a;
+  background: #b9935a;
+  color: #0a0a0a;
+}
+
+.calendarError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid rgb(202 117 108 / 25%);
+  background: rgb(202 117 108 / 8%);
+  color: #d7b5b1;
+  font-size: 0.78rem;
+}
+
+.calendarError p {
+  margin: 0;
+}
+
+.calendarError button {
+  border: 0;
+  background: transparent;
+  color: #f2eee6;
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding: 1rem;
+  transition: opacity 160ms ease;
+}
+
+.monthGridLoading {
+  opacity: 0.48;
+}
+
+.weekDay {
+  padding: 0.65rem 0.35rem;
+  color: #6f6961;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.calendarDay,
+.emptyDay {
+  min-width: 0;
+  aspect-ratio: 1.35;
+  border: 1px solid rgb(242 238 230 / 7%);
+}
+
+.calendarDay {
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: #c7c0b5;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.calendarDay:hover {
+  border-color: rgb(185 147 90 / 55%);
+}
+
+.calendarDay[aria-pressed="true"] {
+  border-color: #b9935a;
+  background: rgb(185 147 90 / 16%);
+  color: #f2eee6;
+}
+
+.calendarDay small {
+  position: absolute;
+  right: 0.32rem;
+  bottom: 0.28rem;
+  display: grid;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #b9935a;
+  color: #0a0a0a;
+  font-size: 0.55rem;
+  font-weight: 900;
+}
+
+.emptyDay {
+  background: rgb(255 255 255 / 1%);
+}
+
+.agendaHeader {
+  border-bottom: 1px solid rgb(242 238 230 / 9%);
+  padding: 1.5rem;
+}
+
+.agendaHeader p {
+  margin: 0 0 0.45rem;
+  color: #b9935a;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.professionalColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.singleProfessionalColumn {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.professionalAgenda {
+  min-width: 0;
+  padding: 1.35rem;
+}
+
+.professionalAgenda + .professionalAgenda {
+  border-left: 1px solid rgb(242 238 230 / 9%);
+}
+
+.professionalHeading {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding-bottom: 1rem;
+}
+
+.professionalHeading > span {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: #b9935a;
+  box-shadow: 0 0 0 4px rgb(185 147 90 / 10%);
+}
+
+.professionalHeading h3 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.professionalHeading small {
+  color: #6f6961;
+  font-size: 0.62rem;
+}
+
+.professionalAgenda ol {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.professionalAgenda li {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 4.75rem;
+  border: 1px solid rgb(242 238 230 / 8%);
+  padding: 0.9rem;
+  background: rgb(255 255 255 / 1.5%);
+}
+
+.professionalAgenda time {
+  color: #d0ad74;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.professionalAgenda li > div {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.professionalAgenda strong {
+  overflow: hidden;
+  color: #f2eee6;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.professionalAgenda li span,
+.professionalAgenda li > small {
+  color: #837d74;
+  font-size: 0.65rem;
+}
+
+.emptyAgenda {
+  display: grid;
+  min-height: 6rem;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed rgb(242 238 230 / 9%);
+  color: #716b63;
+  font-size: 0.75rem;
+}
+
 .backdrop {
   display: none;
 }
@@ -343,6 +631,15 @@
     border: 0;
     background: rgb(0 0 0 / 68%);
   }
+
+  .professionalColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .professionalAgenda + .professionalAgenda {
+    border-top: 1px solid rgb(242 238 230 / 9%);
+    border-left: 0;
+  }
 }
 
 @media (max-width: 520px) {
@@ -383,6 +680,60 @@
   }
 
   .reservationProfessional {
+    grid-column: 2;
+  }
+
+  .calendarWorkspace {
+    margin-top: 2.5rem;
+  }
+
+  .calendarToolbar {
+    grid-template-columns: 2.6rem 1fr 2.6rem;
+    padding: 1rem;
+  }
+
+  .calendarToolbar button {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .professionalFilters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 0.85rem 1rem;
+  }
+
+  .professionalFilters button {
+    flex: 0 0 auto;
+  }
+
+  .monthGrid {
+    padding: 0.55rem;
+  }
+
+  .calendarDay,
+  .emptyDay {
+    aspect-ratio: 1;
+  }
+
+  .calendarDay small {
+    right: 0.16rem;
+    bottom: 0.14rem;
+    min-width: 0.95rem;
+    height: 0.95rem;
+    font-size: 0.48rem;
+  }
+
+  .agendaHeader,
+  .professionalAgenda {
+    padding: 1.1rem;
+  }
+
+  .professionalAgenda li {
+    grid-template-columns: 3.7rem minmax(0, 1fr);
+  }
+
+  .professionalAgenda li > small {
     grid-column: 2;
   }
 }
