@@ -471,6 +471,10 @@
 }
 
 .agendaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
   border-bottom: 1px solid rgb(242 238 230 / 9%);
   padding: 1.5rem;
 }
@@ -583,6 +587,234 @@
   border: 1px dashed rgb(242 238 230 / 9%);
   color: #716b63;
   font-size: 0.75rem;
+}
+
+.addReservationButton {
+  display: inline-flex;
+  min-height: 2.8rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border: 1px solid #b9935a;
+  padding: 0 1.1rem;
+  background: #b9935a;
+  color: #090909;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.addReservationButton span {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.manualReservationNotice {
+  border-bottom: 1px solid rgb(185 147 90 / 18%);
+  padding: 0.9rem 1.5rem;
+  background: rgb(185 147 90 / 9%);
+  color: #d9c5a4;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.modalLayer {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(0 0 0 / 78%);
+  backdrop-filter: blur(5px);
+}
+
+.manualReservationModal {
+  position: relative;
+  width: min(48rem, 100%);
+  max-height: min(90vh, 52rem);
+  overflow-y: auto;
+  border: 1px solid rgb(208 173 116 / 38%);
+  background: #10100f;
+  box-shadow: 0 2rem 6rem rgb(0 0 0 / 55%);
+}
+
+.manualReservationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgb(242 238 230 / 9%);
+  padding: 1.5rem;
+}
+
+.manualReservationHeader p,
+.manualReservationHeader h2,
+.manualReservationHeader span {
+  margin: 0;
+}
+
+.manualReservationHeader p {
+  color: #b9935a;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+}
+
+.manualReservationHeader h2 {
+  margin-top: 0.45rem;
+  color: #f2eee6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 400;
+}
+
+.manualReservationHeader span {
+  display: block;
+  margin-top: 0.5rem;
+  color: #817b72;
+  font-size: 0.72rem;
+}
+
+.manualReservationHeader > button {
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(242 238 230 / 13%);
+  background: transparent;
+  color: #f2eee6;
+  cursor: pointer;
+  font-size: 1.35rem;
+}
+
+.manualReservationForm {
+  padding: 1.5rem;
+}
+
+.manualFormGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.manualFormGrid label {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.manualFormGrid label > span {
+  color: #9b9489;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.manualFormGrid input,
+.manualFormGrid select {
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  border: 1px solid rgb(242 238 230 / 14%);
+  border-radius: 0;
+  padding: 0 0.9rem;
+  background: #171716;
+  color: #f2eee6;
+  font: inherit;
+  font-size: 0.8rem;
+  color-scheme: dark;
+}
+
+.manualFormGrid input:focus,
+.manualFormGrid select:focus {
+  border-color: #b9935a;
+  outline: 1px solid #b9935a;
+  outline-offset: 0;
+}
+
+.manualFormGrid input:disabled,
+.manualFormGrid select:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.manualFullField {
+  grid-column: 1 / -1;
+}
+
+.manualAvailabilityStatus {
+  min-height: 2.8rem;
+  margin-top: 1rem;
+  border: 1px solid rgb(185 147 90 / 18%);
+  padding: 0.75rem 0.9rem;
+  background: rgb(185 147 90 / 6%);
+  color: #a49c90;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.manualFormError {
+  margin: 1rem 1.5rem 0;
+  border: 1px solid rgb(202 117 108 / 35%);
+  padding: 0.8rem 0.9rem;
+  background: rgb(202 117 108 / 9%);
+  color: #dcb8b3;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.manualReservationForm .manualFormError {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.manualFormActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(242 238 230 / 9%);
+}
+
+.manualFormActions button {
+  min-height: 2.9rem;
+  border-radius: 0;
+  padding: 0 1.2rem;
+  cursor: pointer;
+  font-size: 0.63rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.manualFormActions button:disabled,
+.manualReservationHeader > button:disabled,
+.modalBackdrop:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.manualCancelButton {
+  border: 1px solid rgb(242 238 230 / 16%);
+  background: transparent;
+  color: #a8a198;
+}
+
+.manualSubmitButton {
+  border: 1px solid #b9935a;
+  background: #b9935a;
+  color: #090909;
 }
 
 .backdrop {
@@ -727,6 +959,50 @@
   .agendaHeader,
   .professionalAgenda {
     padding: 1.1rem;
+  }
+
+  .agendaHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .addReservationButton {
+    width: 100%;
+  }
+
+  .modalLayer {
+    align-items: end;
+    padding: 0;
+  }
+
+  .manualReservationModal {
+    width: 100%;
+    max-height: 94vh;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+  }
+
+  .manualReservationHeader,
+  .manualReservationForm {
+    padding: 1.15rem;
+  }
+
+  .manualFormGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .manualFullField {
+    grid-column: auto;
+  }
+
+  .manualFormActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .manualSubmitButton {
+    grid-row: 1;
   }
 
   .professionalAgenda li {

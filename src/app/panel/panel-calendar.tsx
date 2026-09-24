@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import type {
@@ -7,6 +8,7 @@ import type {
   CalendarMonthResult,
 } from "@/lib/auth/calendar-reservations";
 
+import { ManualReservationForm } from "./manual-reservation-form";
 import styles from "./panel.module.css";
 
 const weekDays = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
@@ -46,6 +48,7 @@ export function PanelCalendar({
 }: {
   initialResult: CalendarMonthResult;
 }) {
+  const router = useRouter();
   const [calendar, setCalendar] = useState(initialResult.calendar);
   const [selectedDate, setSelectedDate] = useState(() =>
     defaultSelectedDate(initialResult.calendar),
@@ -55,6 +58,8 @@ export function PanelCalendar({
   );
   const [loading, setLoading] = useState(false);
   const [available, setAvailable] = useState(initialResult.ok);
+  const [manualReservationOpen, setManualReservationOpen] = useState(false);
+  const [manualReservationNotice, setManualReservationNotice] = useState("");
   const requestNumber = useRef(0);
 
   const cells = useMemo(() => monthCells(calendar.month), [calendar.month]);
@@ -91,7 +96,7 @@ export function PanelCalendar({
       professionalFilter === "all" || professional.id === professionalFilter,
   );
 
-  async function loadMonth(nextMonth: string) {
+  async function loadMonth(nextMonth: string, preferredDate?: string) {
     const currentRequest = requestNumber.current + 1;
     requestNumber.current = currentRequest;
     setLoading(true);
@@ -108,7 +113,11 @@ export function PanelCalendar({
       }
 
       setCalendar(result.calendar);
-      setSelectedDate(defaultSelectedDate(result.calendar));
+      setSelectedDate(
+        preferredDate?.startsWith(`${result.calendar.month}-`)
+          ? preferredDate
+          : defaultSelectedDate(result.calendar),
+      );
       setProfessionalFilter("all");
       setAvailable(true);
     } catch {
@@ -116,6 +125,21 @@ export function PanelCalendar({
     } finally {
       if (currentRequest === requestNumber.current) setLoading(false);
     }
+  }
+
+  async function handleManualReservationCreated(
+    booking: { professional: { name: string }; service: { name: string } },
+    emailStatus: "sent" | "error",
+    reservationDate: string,
+  ) {
+    await loadMonth(reservationDate.slice(0, 7), reservationDate);
+    router.refresh();
+    setManualReservationNotice(
+      emailStatus === "sent"
+        ? `${booking.service.name} con ${booking.professional.name} guardado. Email enviado.`
+        : `${booking.service.name} con ${booking.professional.name} guardado. La cita está confirmada, aunque el email no se ha podido enviar.`,
+    );
+    setManualReservationOpen(false);
   }
 
   return (
@@ -203,9 +227,27 @@ export function PanelCalendar({
 
       <section className={styles.dayAgenda} aria-labelledby="agenda-title">
         <div className={styles.agendaHeader}>
-          <p>AGENDA DIARIA</p>
-          <h2 id="agenda-title">{selectedDateLabel}</h2>
+          <div>
+            <p>AGENDA DIARIA</p>
+            <h2 id="agenda-title">{selectedDateLabel}</h2>
+          </div>
+          <button
+            className={styles.addReservationButton}
+            onClick={() => {
+              setManualReservationNotice("");
+              setManualReservationOpen(true);
+            }}
+            type="button"
+          >
+            <span aria-hidden="true">+</span>
+            Añadir reserva
+          </button>
         </div>
+        {manualReservationNotice ? (
+          <div className={styles.manualReservationNotice} role="status">
+            {manualReservationNotice}
+          </div>
+        ) : null}
         <div
           className={`${styles.professionalColumns} ${professionalFilter !== "all" ? styles.singleProfessionalColumn : ""}`}
         >
@@ -250,6 +292,14 @@ export function PanelCalendar({
           })}
         </div>
       </section>
+
+      {manualReservationOpen ? (
+        <ManualReservationForm
+          initialDate={selectedDate}
+          onClose={() => setManualReservationOpen(false)}
+          onCreated={handleManualReservationCreated}
+        />
+      ) : null}
     </section>
   );
 }
