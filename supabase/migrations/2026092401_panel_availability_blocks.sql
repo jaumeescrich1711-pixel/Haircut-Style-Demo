@@ -355,4 +355,3 @@ grant execute on function public.create_my_availability_block(
 ) to authenticated;
 
 commit;
-

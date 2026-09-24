@@ -181,4 +181,3 @@ export async function createMyAvailabilityBlock(
     blocks,
   };
 }
-
