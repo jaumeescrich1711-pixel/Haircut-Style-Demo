@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import type {
+  CalendarAvailabilityBlock,
   BusinessCalendarMonth,
   CalendarMonthResult,
 } from "@/lib/auth/calendar-reservations";
 
+import { AvailabilityBlockForm } from "./availability-block-form";
 import { ManualReservationForm } from "./manual-reservation-form";
 import styles from "./panel.module.css";
 
@@ -60,6 +62,8 @@ export function PanelCalendar({
   const [available, setAvailable] = useState(initialResult.ok);
   const [manualReservationOpen, setManualReservationOpen] = useState(false);
   const [manualReservationNotice, setManualReservationNotice] = useState("");
+  const [availabilityBlockOpen, setAvailabilityBlockOpen] = useState(false);
+  const [availabilityBlockNotice, setAvailabilityBlockNotice] = useState("");
   const requestNumber = useRef(0);
 
   const cells = useMemo(() => monthCells(calendar.month), [calendar.month]);
@@ -140,6 +144,20 @@ export function PanelCalendar({
         : `${booking.service.name} con ${booking.professional.name} guardado. La cita está confirmada, aunque el email no se ha podido enviar.`,
     );
     setManualReservationOpen(false);
+  }
+
+  async function handleAvailabilityBlockCreated(
+    blocks: CalendarAvailabilityBlock[],
+    blockDate: string,
+  ) {
+    await loadMonth(blockDate.slice(0, 7), blockDate);
+    router.refresh();
+    setAvailabilityBlockNotice(
+      blocks.length === 1
+        ? `Bloqueo guardado para ${blocks[0].professionalName}.`
+        : `Bloqueo guardado para ${blocks.length} profesionales.`,
+    );
+    setAvailabilityBlockOpen(false);
   }
 
   return (
@@ -231,21 +249,39 @@ export function PanelCalendar({
             <p>AGENDA DIARIA</p>
             <h2 id="agenda-title">{selectedDateLabel}</h2>
           </div>
-          <button
-            className={styles.addReservationButton}
-            onClick={() => {
-              setManualReservationNotice("");
-              setManualReservationOpen(true);
-            }}
-            type="button"
-          >
-            <span aria-hidden="true">+</span>
-            Añadir reserva
-          </button>
+          <div className={styles.agendaActions}>
+            <button
+              className={styles.blockScheduleButton}
+              onClick={() => {
+                setAvailabilityBlockNotice("");
+                setAvailabilityBlockOpen(true);
+              }}
+              type="button"
+            >
+              <span aria-hidden="true">×</span>
+              Bloquear horario / día
+            </button>
+            <button
+              className={styles.addReservationButton}
+              onClick={() => {
+                setManualReservationNotice("");
+                setManualReservationOpen(true);
+              }}
+              type="button"
+            >
+              <span aria-hidden="true">+</span>
+              Añadir reserva
+            </button>
+          </div>
         </div>
         {manualReservationNotice ? (
           <div className={styles.manualReservationNotice} role="status">
             {manualReservationNotice}
+          </div>
+        ) : null}
+        {availabilityBlockNotice ? (
+          <div className={styles.availabilityBlockNotice} role="status">
+            {availabilityBlockNotice}
           </div>
         ) : null}
         <div
@@ -257,6 +293,23 @@ export function PanelCalendar({
                 reservation.localDate === selectedDate &&
                 reservation.professionalId === professional.id,
             );
+            const blocks = calendar.blocks.filter(
+              (block) =>
+                block.localDate === selectedDate &&
+                block.professionalId === professional.id,
+            );
+            const agendaItems = [
+              ...appointments.map((appointment) => ({
+                kind: "reservation" as const,
+                sortTime: appointment.localStart,
+                appointment,
+              })),
+              ...blocks.map((block) => ({
+                kind: "block" as const,
+                sortTime: block.allDay ? "00:00" : block.localStart,
+                block,
+              })),
+            ].sort((left, right) => left.sortTime.localeCompare(right.sortTime));
 
             return (
               <section className={styles.professionalAgenda} key={professional.id}>
@@ -265,26 +318,49 @@ export function PanelCalendar({
                   <h3>{professional.name}</h3>
                   <small>
                     {appointments.length} {appointments.length === 1 ? "cita" : "citas"}
+                    {blocks.length > 0
+                      ? ` · ${blocks.length} ${blocks.length === 1 ? "bloqueo" : "bloqueos"}`
+                      : ""}
                   </small>
                 </div>
-                {appointments.length === 0 ? (
+                {agendaItems.length === 0 ? (
                   <p className={styles.emptyAgenda}>Sin citas para este día.</p>
                 ) : (
                   <ol>
-                    {appointments.map((appointment) => (
-                      <li key={appointment.id}>
-                        <time dateTime={appointment.startDatetime}>
-                          {appointment.localStart}
-                        </time>
-                        <div>
-                          <strong>{appointment.clientName}</strong>
-                          <span>{appointment.serviceName}</span>
-                        </div>
-                        <small>
-                          {appointment.localStart}–{appointment.localEnd}
-                        </small>
-                      </li>
-                    ))}
+                    {agendaItems.map((item) =>
+                      item.kind === "reservation" ? (
+                        <li key={`reservation-${item.appointment.id}`}>
+                          <time dateTime={item.appointment.startDatetime}>
+                            {item.appointment.localStart}
+                          </time>
+                          <div>
+                            <strong>{item.appointment.clientName}</strong>
+                            <span>{item.appointment.serviceName}</span>
+                          </div>
+                          <small>
+                            {item.appointment.localStart}–{item.appointment.localEnd}
+                          </small>
+                        </li>
+                      ) : (
+                        <li
+                          className={styles.availabilityBlockItem}
+                          key={`block-${item.block.id}`}
+                        >
+                          <time dateTime={item.block.startDatetime}>
+                            {item.block.allDay ? "DÍA" : item.block.localStart}
+                          </time>
+                          <div>
+                            <strong>Horario bloqueado</strong>
+                            <span>{item.block.reason ?? "Sin motivo indicado"}</span>
+                          </div>
+                          <small>
+                            {item.block.allDay
+                              ? "Día completo"
+                              : `${item.block.localStart}–${item.block.localEnd}`}
+                          </small>
+                        </li>
+                      ),
+                    )}
                   </ol>
                 )}
               </section>
@@ -300,6 +376,17 @@ export function PanelCalendar({
           onCreated={handleManualReservationCreated}
         />
       ) : null}
+
+      {availabilityBlockOpen ? (
+        <AvailabilityBlockForm
+          initialDate={selectedDate}
+          onClose={() => setAvailabilityBlockOpen(false)}
+          onCreated={handleAvailabilityBlockCreated}
+          professionals={calendar.professionals}
+          today={calendar.today}
+        />
+      ) : null}
     </section>
   );
 }
+

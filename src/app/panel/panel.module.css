@@ -589,7 +589,15 @@
   font-size: 0.75rem;
 }
 
-.addReservationButton {
+.agendaActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.addReservationButton,
+.blockScheduleButton {
   display: inline-flex;
   min-height: 2.8rem;
   align-items: center;
@@ -606,18 +614,43 @@
   text-transform: uppercase;
 }
 
-.addReservationButton span {
+.addReservationButton span,
+.blockScheduleButton span {
   font-size: 1.1rem;
   line-height: 1;
 }
 
-.manualReservationNotice {
+.blockScheduleButton {
+  border: 1px solid rgb(202 152 95 / 55%);
+  background: transparent;
+  color: #d9c5a4;
+}
+
+.manualReservationNotice,
+.availabilityBlockNotice {
   border-bottom: 1px solid rgb(185 147 90 / 18%);
   padding: 0.9rem 1.5rem;
   background: rgb(185 147 90 / 9%);
   color: #d9c5a4;
   font-size: 0.75rem;
   line-height: 1.55;
+}
+
+.availabilityBlockNotice {
+  border-color: rgb(202 152 95 / 24%);
+  background: rgb(202 152 95 / 10%);
+}
+
+.professionalAgenda .availabilityBlockItem {
+  border-color: rgb(202 152 95 / 30%);
+  background:
+    linear-gradient(90deg, rgb(202 152 95 / 12%), transparent 62%),
+    rgb(255 255 255 / 1.5%);
+}
+
+.professionalAgenda .availabilityBlockItem time,
+.professionalAgenda .availabilityBlockItem strong {
+  color: #d9b47d;
 }
 
 .modalLayer {
@@ -645,6 +678,10 @@
   border: 1px solid rgb(208 173 116 / 38%);
   background: #10100f;
   box-shadow: 0 2rem 6rem rgb(0 0 0 / 55%);
+}
+
+.availabilityBlockModal {
+  width: min(42rem, 100%);
 }
 
 .manualReservationHeader {
@@ -722,7 +759,8 @@
 }
 
 .manualFormGrid input,
-.manualFormGrid select {
+.manualFormGrid select,
+.manualFormGrid textarea {
   width: 100%;
   min-width: 0;
   min-height: 3rem;
@@ -736,8 +774,16 @@
   color-scheme: dark;
 }
 
+.manualFormGrid textarea {
+  min-height: 5.5rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  resize: vertical;
+}
+
 .manualFormGrid input:focus,
-.manualFormGrid select:focus {
+.manualFormGrid select:focus,
+.manualFormGrid textarea:focus {
   border-color: #b9935a;
   outline: 1px solid #b9935a;
   outline-offset: 0;
@@ -777,6 +823,28 @@
 .manualReservationForm .manualFormError {
   margin-right: 0;
   margin-left: 0;
+}
+
+.blockSafetyNotice {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  border: 1px solid rgb(202 152 95 / 22%);
+  padding: 0.85rem 0.9rem;
+  background: rgb(202 152 95 / 7%);
+  color: #a49c90;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.blockSafetyNotice strong {
+  color: #d9c5a4;
+}
+
+.affectedReservationCount {
+  display: block;
+  margin-top: 0.45rem;
+  color: #f2eee6;
 }
 
 .manualFormActions {
@@ -970,6 +1038,11 @@
     width: 100%;
   }
 
+  .agendaActions,
+  .blockScheduleButton {
+    width: 100%;
+  }
+
   .modalLayer {
     align-items: end;
     padding: 0;
@@ -1013,3 +1086,4 @@
     grid-column: 2;
   }
 }
+

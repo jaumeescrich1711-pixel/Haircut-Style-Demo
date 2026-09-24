@@ -171,7 +171,7 @@ export function PanelShell({
               <div className={styles.heading}>
                 <p>CALENDARIO</p>
                 <h1>Agenda del negocio</h1>
-                <span>Consulta las citas de Pablo e Iker por día.</span>
+                <span>Consulta las citas y los bloqueos por día.</span>
               </div>
               <PanelCalendar initialResult={initialCalendar} />
             </>
@@ -190,3 +190,4 @@ export function PanelShell({
     </main>
   );
 }
+

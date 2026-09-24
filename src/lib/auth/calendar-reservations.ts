@@ -20,12 +20,26 @@ export type CalendarReservation = {
   localEnd: string;
 };
 
+export type CalendarAvailabilityBlock = {
+  id: number;
+  professionalId: number;
+  professionalName: string;
+  startDatetime: string;
+  endDatetime: string;
+  localDate: string;
+  localStart: string;
+  localEnd: string;
+  allDay: boolean;
+  reason: string | null;
+};
+
 export type BusinessCalendarMonth = {
   month: string;
   today: string;
   timeZone: string;
   professionals: CalendarProfessional[];
   reservations: CalendarReservation[];
+  blocks: CalendarAvailabilityBlock[];
 };
 
 export type CalendarMonthResult = {
@@ -45,6 +59,18 @@ type RpcReservation = {
   local_date?: unknown;
   local_start?: unknown;
   local_end?: unknown;
+};
+type RpcAvailabilityBlock = {
+  id?: unknown;
+  professional_id?: unknown;
+  professional_name?: unknown;
+  start_datetime?: unknown;
+  end_datetime?: unknown;
+  local_date?: unknown;
+  local_start?: unknown;
+  local_end?: unknown;
+  all_day?: unknown;
+  reason?: unknown;
 };
 
 const monthPattern = /^\d{4}-(?:0[1-9]|1[0-2])$/;
@@ -72,6 +98,7 @@ function emptyCalendar(month?: string): BusinessCalendarMonth {
     timeZone: "Europe/Madrid",
     professionals: [],
     reservations: [],
+    blocks: [],
   };
 }
 
@@ -134,6 +161,57 @@ function parseReservation(value: unknown): CalendarReservation | null {
   };
 }
 
+function parseAvailabilityBlock(
+  value: unknown,
+): CalendarAvailabilityBlock | null {
+  if (!value || typeof value !== "object") return null;
+
+  const block = value as RpcAvailabilityBlock;
+  const id = Number(block.id);
+  const professionalId = Number(block.professional_id);
+
+  if (
+    !Number.isSafeInteger(id) ||
+    id <= 0 ||
+    !Number.isSafeInteger(professionalId) ||
+    professionalId <= 0 ||
+    typeof block.professional_name !== "string" ||
+    !block.professional_name.trim() ||
+    typeof block.start_datetime !== "string" ||
+    typeof block.end_datetime !== "string" ||
+    typeof block.local_date !== "string" ||
+    !datePattern.test(block.local_date) ||
+    typeof block.local_start !== "string" ||
+    !timePattern.test(block.local_start) ||
+    typeof block.local_end !== "string" ||
+    !timePattern.test(block.local_end) ||
+    typeof block.all_day !== "boolean" ||
+    !(
+      block.reason === null ||
+      block.reason === undefined ||
+      typeof block.reason === "string"
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    id,
+    professionalId,
+    professionalName: block.professional_name.trim(),
+    startDatetime: block.start_datetime,
+    endDatetime: block.end_datetime,
+    localDate: block.local_date,
+    localStart: block.local_start,
+    localEnd: block.local_end,
+    allDay: block.all_day,
+    reason:
+      typeof block.reason === "string" && block.reason.trim()
+        ? block.reason.trim()
+        : null,
+  };
+}
+
 export function isCalendarMonth(value: string | null): value is string {
   return typeof value === "string" && monthPattern.test(value);
 }
@@ -149,12 +227,20 @@ export async function getMyCalendarMonth(
 
   const supabase = await createAuthServerClient();
   const args = month ? { p_month: `${month}-01` } : undefined;
-  const { data, error } = await supabase.rpc(
-    "get_my_calendar_reservations",
-    args,
-  );
+  const [reservationResult, blockResult] = await Promise.all([
+    supabase.rpc("get_my_calendar_reservations", args),
+    supabase.rpc("get_my_calendar_availability_blocks", args),
+  ]);
+  const { data, error } = reservationResult;
 
-  if (error || !Array.isArray(data) || data.length !== 1) {
+  if (
+    error ||
+    blockResult.error ||
+    !Array.isArray(data) ||
+    data.length !== 1 ||
+    !Array.isArray(blockResult.data) ||
+    blockResult.data.length !== 1
+  ) {
     return { ok: false, calendar: fallback };
   }
 
@@ -165,6 +251,12 @@ export async function getMyCalendarMonth(
     professionals?: unknown;
     reservations?: unknown;
   };
+  const blockData = blockResult.data[0] as {
+    business_timezone?: unknown;
+    today_date?: unknown;
+    month_start?: unknown;
+    blocks?: unknown;
+  };
 
   if (
     typeof result.business_timezone !== "string" ||
@@ -173,7 +265,11 @@ export async function getMyCalendarMonth(
     typeof result.month_start !== "string" ||
     !datePattern.test(result.month_start) ||
     !Array.isArray(result.professionals) ||
-    !Array.isArray(result.reservations)
+    !Array.isArray(result.reservations) ||
+    blockData.business_timezone !== result.business_timezone ||
+    blockData.today_date !== result.today_date ||
+    blockData.month_start !== result.month_start ||
+    !Array.isArray(blockData.blocks)
   ) {
     return { ok: false, calendar: fallback };
   }
@@ -184,10 +280,14 @@ export async function getMyCalendarMonth(
   const reservations = result.reservations
     .map(parseReservation)
     .filter((reservation): reservation is CalendarReservation => reservation !== null);
+  const blocks = blockData.blocks
+    .map(parseAvailabilityBlock)
+    .filter((block): block is CalendarAvailabilityBlock => block !== null);
 
   if (
     professionals.length !== result.professionals.length ||
-    reservations.length !== result.reservations.length
+    reservations.length !== result.reservations.length ||
+    blocks.length !== blockData.blocks.length
   ) {
     return { ok: false, calendar: fallback };
   }
@@ -200,6 +300,8 @@ export async function getMyCalendarMonth(
       timeZone: result.business_timezone,
       professionals,
       reservations,
+      blocks,
     },
   };
 }
+
