@@ -118,6 +118,12 @@ Tras la confirmación, el sistema crea el bloqueo y cancela de forma segura las 
 
 El acceso al panel está protegido mediante Supabase Auth. Las operaciones privadas se realizan desde el servidor y la base de datos aplica políticas RLS para limitar el acceso y evitar modificaciones directas no autorizadas.
 
+### Migraciones del panel
+
+Las migraciones del panel privado incorporan progresivamente la autenticación y el acceso seguro, las reservas del día, el calendario y la agenda, la creación manual de citas, los bloqueos de disponibilidad y la cancelación segura de las reservas afectadas.
+
+Las migraciones correspondientes se encuentran en `supabase/migrations/`, desde `2026091301_private_panel_auth.sql` hasta `2026092402_panel_business_cancellations.sql`.
+
 ## Comprobaciones
 
 ```bash
