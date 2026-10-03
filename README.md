@@ -104,6 +104,15 @@ llegan simultáneamente.
 La política mínima de lectura para la configuración pública está documentada
 en `supabase/policies/public-business-settings.sql`. Mantiene RLS activo y solo
 expone las columnas necesarias para dibujar el calendario.
+## Panel privado
+
+El panel privado permite a los responsables del negocio consultar y gestionar las reservas, crear citas manualmente, revisar la agenda, bloquear días u horarios y gestionar las cancelaciones de las citas afectadas.
+
+## Bloqueos y cancelaciones
+
+El panel permite seleccionar una fecha, un intervalo horario y uno o varios profesionales para crear un bloqueo de disponibilidad. Antes de confirmarlo, el sistema comprueba si existen reservas activas afectadas y, si las hay, muestra las citas que tendrían que cancelarse y exige indicar un motivo.
+
+Tras la confirmación, el sistema crea el bloqueo y cancela de forma segura las reservas afectadas. Cada cliente recibe individualmente un email con la información de la cancelación, incluido el motivo, y un botón para volver a la web y reservar una nueva cita.
 
 ## Comprobaciones
 
@@ -118,4 +127,4 @@ pnpm build
 - Next.js con App Router y carpeta `src/`
 - TypeScript en modo estricto
 - ESLint con las reglas recomendadas de Next.js
-- Cliente de Supabase preparado para la futura lógica de reservas
+- Supabase se encarga de almacenar, organizar y proteger los datos de la aplicación
