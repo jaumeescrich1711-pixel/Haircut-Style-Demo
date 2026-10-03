@@ -55,7 +55,6 @@ export default function ResultsCarousel() {
                 <span />
               </div>
               <p>Espacio para resultado</p>
-              <small>Fotografía pendiente</small>
             </div>
           </div>
         ))}
