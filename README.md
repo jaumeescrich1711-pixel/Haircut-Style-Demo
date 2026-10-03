@@ -114,6 +114,10 @@ El panel permite seleccionar una fecha, un intervalo horario y uno o varios prof
 
 Tras la confirmación, el sistema crea el bloqueo y cancela de forma segura las reservas afectadas. Cada cliente recibe individualmente un email con la información de la cancelación, incluido el motivo, y un botón para volver a la web y reservar una nueva cita.
 
+### Seguridad del panel
+
+El acceso al panel está protegido mediante Supabase Auth. Las operaciones privadas se realizan desde el servidor y la base de datos aplica políticas RLS para limitar el acceso y evitar modificaciones directas no autorizadas.
+
 ## Comprobaciones
 
 ```bash
