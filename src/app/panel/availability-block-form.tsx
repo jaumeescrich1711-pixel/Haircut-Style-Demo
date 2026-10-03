@@ -3,20 +3,61 @@
 import { useState } from "react";
 
 import type {
+  AffectedBlockReservation,
+} from "@/lib/auth/availability-blocks";
+import type {
   CalendarAvailabilityBlock,
   CalendarProfessional,
 } from "@/lib/auth/calendar-reservations";
 
 import styles from "./panel.module.css";
 
-type CreateBlockResponse =
-  | { ok: true; blocks: CalendarAvailabilityBlock[] }
+export type AvailabilityBlockCompletion = {
+  cancelledReservations: number;
+  email: {
+    attempted: number;
+    sent: number;
+    failed: number;
+    unrecorded: number;
+  } | null;
+};
+
+type BlockResponse =
+  | {
+      ok: true;
+      outcome: "created";
+      blocks: CalendarAvailabilityBlock[];
+    }
+  | {
+      ok: true;
+      outcome: "confirmation_required";
+      operationId: string;
+      affectedReservations: AffectedBlockReservation[];
+      message: string;
+    }
+  | {
+      ok: true;
+      outcome: "completed";
+      blocks: CalendarAvailabilityBlock[];
+      cancelledReservations: number;
+      email: {
+        attempted: number;
+        sent: number;
+        failed: number;
+        unrecorded: number;
+      };
+    }
   | {
       ok: false;
       code?: string;
-      affectedReservations?: number;
       message: string;
     };
+
+type CancellationPreview = {
+  operationId: string;
+  affectedReservations: AffectedBlockReservation[];
+  message: string;
+};
 
 export function AvailabilityBlockForm({
   initialDate,
@@ -29,7 +70,11 @@ export function AvailabilityBlockForm({
   today: string;
   professionals: CalendarProfessional[];
   onClose: () => void;
-  onCreated: (blocks: CalendarAvailabilityBlock[], date: string) => Promise<void>;
+  onCreated: (
+    blocks: CalendarAvailabilityBlock[],
+    date: string,
+    completion: AvailabilityBlockCompletion,
+  ) => Promise<void>;
 }) {
   const [date, setDate] = useState(initialDate);
   const [professional, setProfessional] = useState("");
@@ -41,14 +86,25 @@ export function AvailabilityBlockForm({
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
-  const [affectedReservations, setAffectedReservations] = useState(0);
+  const [preview, setPreview] = useState<CancellationPreview | null>(null);
+
+  function resetPreview() {
+    setPreview(null);
+    setFormError("");
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
-    setAffectedReservations(0);
-    setSubmitting(true);
 
+    if (preview && !reason.trim()) {
+      setFormError(
+        "Indica el motivo que recibirán los clientes antes de confirmar.",
+      );
+      return;
+    }
+
+    setSubmitting(true);
     const allProfessionals = professional === "all";
     const professionalId = allProfessionals ? null : Number(professional);
     const allDay = blockType === "all-day";
@@ -57,32 +113,61 @@ export function AvailabilityBlockForm({
       const response = await fetch("/api/panel/availability-blocks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          professionalId,
-          allProfessionals,
-          date,
-          allDay,
-          start: allDay ? null : start,
-          end: allDay ? null : end,
-          reason,
-        }),
+        body: JSON.stringify(
+          preview
+            ? {
+                action: "confirm",
+                operationId: preview.operationId,
+                cancellationReason: reason,
+              }
+            : {
+                action: "prepare",
+                professionalId,
+                allProfessionals,
+                date,
+                allDay,
+                start: allDay ? null : start,
+                end: allDay ? null : end,
+                reason,
+              },
+        ),
       });
-      const result = (await response.json()) as CreateBlockResponse;
+      const result = (await response.json()) as BlockResponse;
 
       if (!response.ok || !result.ok) {
-        if (!result.ok && result.code === "active_reservations_affected") {
-          setAffectedReservations(result.affectedReservations ?? 0);
+        if (!result.ok && result.code === "preview_expired") {
+          setPreview(null);
         }
 
         throw new Error(result.ok ? "block_failed" : result.message);
       }
 
-      await onCreated(result.blocks, date);
+      if (result.outcome === "confirmation_required") {
+        setPreview({
+          operationId: result.operationId,
+          affectedReservations: result.affectedReservations,
+          message: result.message,
+        });
+        return;
+      }
+
+      if (result.outcome === "created") {
+        await onCreated(result.blocks, date, {
+          cancelledReservations: 0,
+          email: null,
+        });
+        return;
+      }
+
+      await onCreated(result.blocks, date, {
+        cancelledReservations: result.cancelledReservations,
+        email: result.email,
+      });
     } catch (error) {
       setFormError(
         error instanceof Error && error.message !== "block_failed"
           ? error.message
-          : "No se ha podido guardar el bloqueo.",
+          : "No se ha podido completar la operación.",
       );
     } finally {
       setSubmitting(false);
@@ -91,6 +176,7 @@ export function AvailabilityBlockForm({
 
   const invalidInterval =
     blockType === "interval" && Boolean(start && end && start >= end);
+  const affectedCount = preview?.affectedReservations.length ?? 0;
 
   return (
     <div className={styles.modalLayer} role="presentation">
@@ -112,7 +198,7 @@ export function AvailabilityBlockForm({
             <p>NUEVO BLOQUEO</p>
             <h2 id="availability-block-title">Bloquear horario / día</h2>
             <span>
-              Las reservas existentes se comprueban antes de guardar.
+              Las citas se comprueban de nuevo justo antes de confirmar.
             </span>
           </div>
           <button
@@ -133,8 +219,7 @@ export function AvailabilityBlockForm({
                 min={today}
                 onChange={(event) => {
                   setDate(event.target.value);
-                  setFormError("");
-                  setAffectedReservations(0);
+                  resetPreview();
                 }}
                 required
                 type="date"
@@ -147,8 +232,7 @@ export function AvailabilityBlockForm({
               <select
                 onChange={(event) => {
                   setProfessional(event.target.value);
-                  setFormError("");
-                  setAffectedReservations(0);
+                  resetPreview();
                 }}
                 required
                 value={professional}
@@ -170,8 +254,7 @@ export function AvailabilityBlockForm({
               <select
                 onChange={(event) => {
                   setBlockType(event.target.value as "all-day" | "interval");
-                  setFormError("");
-                  setAffectedReservations(0);
+                  resetPreview();
                 }}
                 value={blockType}
               >
@@ -187,8 +270,7 @@ export function AvailabilityBlockForm({
                   <input
                     onChange={(event) => {
                       setStart(event.target.value);
-                      setFormError("");
-                      setAffectedReservations(0);
+                      resetPreview();
                     }}
                     required
                     step={60}
@@ -201,8 +283,7 @@ export function AvailabilityBlockForm({
                   <input
                     onChange={(event) => {
                       setEnd(event.target.value);
-                      setFormError("");
-                      setAffectedReservations(0);
+                      resetPreview();
                     }}
                     required
                     step={60}
@@ -214,24 +295,62 @@ export function AvailabilityBlockForm({
             ) : null}
 
             <label className={styles.manualFullField}>
-              <span>Motivo opcional</span>
+              <span>
+                {preview
+                  ? "Motivo de cancelación (obligatorio)"
+                  : "Motivo del bloqueo (opcional)"}
+              </span>
               <textarea
-                maxLength={300}
-                onChange={(event) => setReason(event.target.value)}
-                placeholder="Vacaciones, asunto personal, formación…"
+                maxLength={500}
+                onChange={(event) => {
+                  setReason(event.target.value);
+                  setFormError("");
+                }}
+                placeholder={
+                  preview
+                    ? "Explica brevemente por qué debe cancelarse la cita…"
+                    : "Vacaciones, asunto personal, formación…"
+                }
+                required={Boolean(preview)}
                 rows={3}
                 value={reason}
               />
             </label>
           </div>
 
-          <div className={styles.blockSafetyNotice}>
-            <strong>No se cancelará ninguna cita.</strong>
-            <span>
-              Si el intervalo afecta a reservas activas, el bloqueo se rechazará
-              y podrás gestionarlas antes.
-            </span>
-          </div>
+          {preview ? (
+            <div className={styles.blockCancellationWarning} role="alert">
+              <strong>{preview.message}</strong>
+              <p>
+                La fecha y la hora originales no cambiarán. Cada cliente podrá
+                elegir una nueva cita desde el enlace incluido en su email.
+              </p>
+              <ol>
+                {preview.affectedReservations.map((reservation) => (
+                  <li key={reservation.id}>
+                    <div>
+                      <strong>{reservation.clientName}</strong>
+                      <span>
+                        {reservation.serviceName} · {reservation.professionalName}
+                      </span>
+                    </div>
+                    <time dateTime={reservation.startDatetime}>
+                      {reservation.localDate} · {reservation.localStart}–
+                      {reservation.localEnd}
+                    </time>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : (
+            <div className={styles.blockSafetyNotice}>
+              <strong>Primero se comprobarán las citas afectadas.</strong>
+              <span>
+                Si hay reservas activas, nada se cancelará hasta que revises la
+                advertencia y confirmes expresamente.
+              </span>
+            </div>
+          )}
 
           {invalidInterval ? (
             <div className={styles.manualFormError} role="alert">
@@ -242,11 +361,6 @@ export function AvailabilityBlockForm({
           {formError ? (
             <div className={styles.manualFormError} role="alert">
               {formError}
-              {affectedReservations > 0 ? (
-                <strong className={styles.affectedReservationCount}>
-                  {affectedReservations} {affectedReservations === 1 ? "cita afectada" : "citas afectadas"}
-                </strong>
-              ) : null}
             </div>
           ) : null}
 
@@ -260,16 +374,27 @@ export function AvailabilityBlockForm({
               CANCELAR
             </button>
             <button
-              className={styles.manualSubmitButton}
+              className={
+                preview
+                  ? styles.destructiveSubmitButton
+                  : styles.manualSubmitButton
+              }
               disabled={
                 submitting ||
                 !professional ||
                 !date ||
-                invalidInterval
+                invalidInterval ||
+                Boolean(preview && !reason.trim())
               }
               type="submit"
             >
-              {submitting ? "BLOQUEANDO…" : "GUARDAR BLOQUEO"}
+              {submitting
+                ? preview
+                  ? "CANCELANDO Y BLOQUEANDO…"
+                  : "COMPROBANDO…"
+                : preview
+                  ? `CANCELAR ${affectedCount} ${affectedCount === 1 ? "CITA" : "CITAS"} Y BLOQUEAR`
+                  : "COMPROBAR Y BLOQUEAR"}
             </button>
           </div>
         </form>

@@ -841,6 +841,74 @@
   color: #d9c5a4;
 }
 
+.blockCancellationWarning {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  border: 1px solid rgb(202 117 108 / 42%);
+  padding: 1rem;
+  background:
+    linear-gradient(135deg, rgb(202 117 108 / 13%), transparent 70%),
+    #151211;
+  color: #dcb8b3;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.blockCancellationWarning > strong {
+  color: #f0d2cd;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.blockCancellationWarning > p {
+  margin: 0;
+  color: #a79b91;
+}
+
+.blockCancellationWarning ol {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blockCancellationWarning li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid rgb(242 238 230 / 8%);
+  padding-top: 0.65rem;
+}
+
+.blockCancellationWarning li > div {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.blockCancellationWarning li strong {
+  overflow: hidden;
+  color: #f2eee6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blockCancellationWarning li span,
+.blockCancellationWarning time {
+  color: #91877d;
+  font-size: 0.67rem;
+}
+
+.blockCancellationWarning time {
+  flex: 0 0 auto;
+  color: #d0ad74;
+  font-variant-numeric: tabular-nums;
+}
+
 .affectedReservationCount {
   display: block;
   margin-top: 0.45rem;
@@ -879,10 +947,17 @@
   color: #a8a198;
 }
 
-.manualSubmitButton {
+.manualSubmitButton,
+.destructiveSubmitButton {
   border: 1px solid #b9935a;
   background: #b9935a;
   color: #090909;
+}
+
+.destructiveSubmitButton {
+  border-color: #ca756c;
+  background: #ca756c;
+  color: #160b0a;
 }
 
 .backdrop {
@@ -1074,8 +1149,15 @@
     grid-template-columns: 1fr;
   }
 
-  .manualSubmitButton {
+  .manualSubmitButton,
+  .destructiveSubmitButton {
     grid-row: 1;
+  }
+
+  .blockCancellationWarning li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   .professionalAgenda li {

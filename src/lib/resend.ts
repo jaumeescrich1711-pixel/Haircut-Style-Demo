@@ -1,6 +1,7 @@
 import "server-only";
 
 import {
+  buildBusinessReservationCancellationEmail,
   buildReservationCancellationEmail,
   buildReservationConfirmationEmail,
   type ReservationEmailContext,
@@ -96,5 +97,15 @@ export async function sendReservationCancellationWithResend(
     context,
     buildReservationCancellationEmail(context),
     `reservation-cancellation/${context.reservationId}`,
+  );
+}
+
+export async function sendBusinessReservationCancellationWithResend(
+  context: ReservationEmailContext,
+) {
+  return sendWithResend(
+    context,
+    buildBusinessReservationCancellationEmail(context),
+    `reservation-business-cancellation/${context.reservationId}`,
   );
 }

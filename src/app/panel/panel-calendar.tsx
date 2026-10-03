@@ -9,7 +9,10 @@ import type {
   CalendarMonthResult,
 } from "@/lib/auth/calendar-reservations";
 
-import { AvailabilityBlockForm } from "./availability-block-form";
+import {
+  AvailabilityBlockForm,
+  type AvailabilityBlockCompletion,
+} from "./availability-block-form";
 import { ManualReservationForm } from "./manual-reservation-form";
 import styles from "./panel.module.css";
 
@@ -149,14 +152,30 @@ export function PanelCalendar({
   async function handleAvailabilityBlockCreated(
     blocks: CalendarAvailabilityBlock[],
     blockDate: string,
+    completion: AvailabilityBlockCompletion,
   ) {
     await loadMonth(blockDate.slice(0, 7), blockDate);
     router.refresh();
-    setAvailabilityBlockNotice(
+    const blockMessage =
       blocks.length === 1
         ? `Bloqueo guardado para ${blocks[0].professionalName}.`
-        : `Bloqueo guardado para ${blocks.length} profesionales.`,
-    );
+        : `Bloqueo guardado para ${blocks.length} profesionales.`;
+
+    if (completion.cancelledReservations === 0) {
+      setAvailabilityBlockNotice(blockMessage);
+    } else if (completion.email && completion.email.failed > 0) {
+      setAvailabilityBlockNotice(
+        `${blockMessage} ${completion.cancelledReservations} ${completion.cancelledReservations === 1 ? "cita cancelada" : "citas canceladas"}. ${completion.email.failed} ${completion.email.failed === 1 ? "email no se ha podido enviar" : "emails no se han podido enviar"}; las cancelaciones siguen siendo válidas.`,
+      );
+    } else if (completion.email && completion.email.unrecorded > 0) {
+      setAvailabilityBlockNotice(
+        `${blockMessage} ${completion.cancelledReservations} ${completion.cancelledReservations === 1 ? "cita cancelada" : "citas canceladas"}. Los emails se enviaron, pero ${completion.email.unrecorded === 1 ? "un resultado no pudo registrarse" : "algunos resultados no pudieron registrarse"}.`,
+      );
+    } else {
+      setAvailabilityBlockNotice(
+        `${blockMessage} ${completion.cancelledReservations} ${completion.cancelledReservations === 1 ? "cita cancelada y cliente notificado" : "citas canceladas y clientes notificados"}.`,
+      );
+    }
     setAvailabilityBlockOpen(false);
   }
 

@@ -2,6 +2,8 @@ export const RESERVATION_CONFIRMATION_SUBJECT =
   "Reserva confirmada — Haircut Style ✅";
 export const RESERVATION_CANCELLATION_SUBJECT =
   "Cita cancelada — Haircut Style";
+export const BUSINESS_RESERVATION_CANCELLATION_SUBJECT =
+  "Tu cita ha sido cancelada — Haircut Style";
 
 export type ReservationEmailContext = {
   reservationId: number;
@@ -19,6 +21,7 @@ export type ReservationEmailContext = {
   calendarUrl: string;
   cancellationUrl: string;
   bookingUrl?: string;
+  cancellationReason?: string;
 };
 
 export type ReservationEmailRecord =
@@ -265,6 +268,98 @@ export function buildReservationCancellationEmail(
   ].join("\n");
 
   return { subject: RESERVATION_CANCELLATION_SUBJECT, html, text };
+}
+
+export function buildBusinessReservationCancellationEmail(
+  context: ReservationEmailContext,
+) {
+  if (!context.bookingUrl || !context.cancellationReason?.trim()) {
+    throw new Error(
+      "La URL de reserva y el motivo de cancelación son obligatorios.",
+    );
+  }
+
+  const date = formatReservationDate(context);
+  const start = formatReservationTime(
+    context.startDatetime,
+    context.businessTimezone,
+  );
+  const end = formatReservationTime(
+    context.endDatetime,
+    context.businessTimezone,
+  );
+  const clientName = escapeHtml(context.clientName);
+  const serviceName = escapeHtml(context.serviceName);
+  const professionalName = escapeHtml(context.professionalName);
+  const businessName = escapeHtml(context.businessName);
+  const cancellationReason = escapeHtml(context.cancellationReason.trim());
+  const bookingUrl = escapeHtml(context.bookingUrl);
+
+  const detailRow = (label: string, value: string) => `
+    <tr>
+      <td style="padding:12px 0;border-bottom:1px solid #3a342b;color:#b9ab98;font-family:Arial,sans-serif;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;">${label}</td>
+      <td style="padding:12px 0;border-bottom:1px solid #3a342b;color:#f5efe5;font-family:Georgia,serif;font-size:16px;text-align:right;">${value}</td>
+    </tr>`;
+
+  const html = `<!doctype html>
+<html lang="es">
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
+  <body style="margin:0;background:#0f0f0f;padding:32px 12px;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#171614;border:1px solid #3a342b;">
+          <tr>
+            <td style="padding:34px 36px 24px;border-bottom:1px solid #3a342b;">
+              <div style="color:#c8a15a;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;">${businessName}</div>
+              <h1 style="margin:12px 0 0;color:#f5efe5;font-family:Georgia,serif;font-size:34px;font-weight:400;line-height:1.15;">Tu cita ha sido cancelada</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px 36px 36px;">
+              <p style="margin:0 0 12px;color:#f5efe5;font-family:Georgia,serif;font-size:20px;line-height:1.5;">Hola, ${clientName}.</p>
+              <p style="margin:0 0 24px;color:#c8bfb3;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;">Sentimos informarte de que el negocio ha tenido que cancelar tu cita. Puedes elegir otra fecha cuando te venga mejor.</p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                ${detailRow("Servicio", serviceName)}
+                ${detailRow("Profesional", professionalName)}
+                ${detailRow("Fecha", escapeHtml(date))}
+                ${detailRow("Horario", `${escapeHtml(start)}–${escapeHtml(end)}`)}
+              </table>
+              <div style="margin-top:24px;border-left:3px solid #c8a15a;padding:14px 16px;background:#211f1b;">
+                <div style="margin-bottom:6px;color:#b9ab98;font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;">Motivo</div>
+                <div style="color:#f5efe5;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;">${cancellationReason}</div>
+              </div>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px;">
+                <tr><td>
+                  <a href="${bookingUrl}" style="display:block;padding:15px 18px;background:#c8a15a;color:#101010;font-family:Arial,sans-serif;font-size:12px;font-weight:800;letter-spacing:1.5px;text-align:center;text-decoration:none;">CAMBIAR FECHA</a>
+                </td></tr>
+              </table>
+              <p style="margin:24px 0 0;color:#81776b;font-family:Arial,sans-serif;font-size:12px;line-height:1.6;">La cita anterior permanece cancelada. El botón te lleva al sistema de reservas para que elijas una nueva fecha personalmente.</p>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = [
+    `Hola, ${context.clientName}.`,
+    "",
+    "El negocio ha tenido que cancelar tu cita.",
+    `Servicio: ${context.serviceName}`,
+    `Profesional: ${context.professionalName}`,
+    `Fecha: ${date}`,
+    `Horario: ${start}–${end}`,
+    `Motivo: ${context.cancellationReason.trim()}`,
+    "",
+    `Cambiar fecha: ${context.bookingUrl}`,
+  ].join("\n");
+
+  return {
+    subject: BUSINESS_RESERVATION_CANCELLATION_SUBJECT,
+    html,
+    text,
+  };
 }
 
 export function getSafeEmailErrorMessage(error: unknown) {
