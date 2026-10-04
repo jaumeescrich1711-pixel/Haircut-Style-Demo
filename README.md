@@ -93,6 +93,14 @@ email de cancelación. Las tablas siguen sin permitir escritura directa a
 la reserva guardada y no accede al calendario personal del cliente.
 
 La migración
+`supabase/migrations/2026100401_public_booking_hardening.sql` impide cancelar
+mediante `management_token` una cita que ya haya comenzado. La validación se
+hace dentro de la RPC comparando los instantes `timestamptz`, por lo que no
+depende de la zona horaria del servidor. También revoca `INSERT`, `UPDATE` y
+`DELETE` de `anon` y `authenticated` sobre `public.services`, manteniendo la
+lectura pública protegida por RLS.
+
+La migración
 `supabase/migrations/20260912_atomic_public_reservations.sql` mantiene RLS,
 revoca el acceso directo de `anon` a `public.reservations` y expone solo dos RPC
 limitadas: una creación atómica validada y una lectura de intervalos ocupados
