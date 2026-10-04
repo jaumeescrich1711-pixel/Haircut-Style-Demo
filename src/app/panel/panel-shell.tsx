@@ -155,13 +155,13 @@ export function PanelShell({
                 )}
               </section>
 
-              <div className={styles.futureGrid} aria-label="Próximas funciones">
+              <div className={styles.futureGrid} aria-label="Funciones ampliables">
                 <div>
-                  <span>Próximamente</span>
+                  <span>Ampliable</span>
                   <p>Resumen de la jornada</p>
                 </div>
                 <div>
-                  <span>Próximamente</span>
+                  <span>Ampliable</span>
                   <p>Actividad del negocio</p>
                 </div>
               </div>
