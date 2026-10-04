@@ -79,6 +79,7 @@ export function PanelShell({
             >
               <span>{item.marker}</span>
               {item.label}
+              {!item.enabled && <small>Ampliable</small>}
             </button>
           ))}
         </nav>

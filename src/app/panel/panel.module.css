@@ -61,6 +61,11 @@
   letter-spacing: 0.12em;
 }
 
+.navItem small {
+  grid-column: 2;
+  font-size: 0.58rem;
+}
+
 .activeNavItem {
   border-left-color: #b9935a;
   color: #f2eee6;
