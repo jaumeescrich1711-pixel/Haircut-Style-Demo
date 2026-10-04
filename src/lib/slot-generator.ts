@@ -8,7 +8,7 @@ export type BookableSlot = {
   end: string;
 };
 
-function timeToMinutes(time: string) {
+export function timeToMinutes(time: string) {
   const match = /^(\d{2}):(\d{2})$/.exec(time);
 
   if (!match) {

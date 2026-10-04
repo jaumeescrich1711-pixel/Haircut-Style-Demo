@@ -10,13 +10,17 @@ import { getPublicBookingSettings } from "@/lib/business-settings";
 import {
   addDaysToIsoDate,
   formatIsoDate,
+  getCurrentMinutesInTimeZone,
   getDaysInMonth,
   getIsoDayOfWeek,
   getTodayInTimeZone,
 } from "@/lib/calendar-date";
 import { getActiveProfessionals } from "@/lib/professionals";
 import { getActiveService } from "@/lib/services";
-import { generateBookableSlots } from "@/lib/slot-generator";
+import {
+  generateBookableSlots,
+  timeToMinutes,
+} from "@/lib/slot-generator";
 
 export type CalendarProfessionalSelection = number | "any";
 
@@ -82,6 +86,7 @@ export async function getBookingCalendar(
   }
 
   const today = getTodayInTimeZone(settings.timeZone);
+  const currentMinutes = getCurrentMinutesInTimeZone(settings.timeZone);
   const maxDate = addDaysToIsoDate(today, settings.maxBookingDaysAhead);
   const dates = Array.from({ length: getDaysInMonth(year, month) }, (_, index) => {
     const day = index + 1;
@@ -143,11 +148,16 @@ export async function getBookingCalendar(
     );
     const slots = mergeProfessionalSlots(schedules);
 
+    const visibleSlots =
+      date === today
+        ? slots.filter((slot) => timeToMinutes(slot.start) > currentMinutes)
+        : slots;
+
     return {
       date,
       day,
-      status: slots.length > 0 ? "available" : "unavailable",
-      slots,
+      status: visibleSlots.length > 0 ? "available" : "unavailable",
+      slots: visibleSlots,
     } satisfies BookingCalendarDay;
   });
 

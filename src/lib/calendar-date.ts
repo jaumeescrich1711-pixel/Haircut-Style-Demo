@@ -94,3 +94,17 @@ export function getTodayInTimeZone(timeZone: string) {
 
   return `${values.year}-${values.month}-${values.day}`;
 }
+
+export function getCurrentMinutesInTimeZone(timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
+
+  return Number(values.hour) * 60 + Number(values.minute);
+}
