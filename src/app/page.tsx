@@ -324,7 +324,7 @@ export default async function Home() {
               </div>
               <div className={sections.mapCaption}>
                 <span>Mapa</span>
-                <small>Próxima integración · Ubicación de demostración</small>
+                <small>Ubicación de demostración</small>
               </div>
             </div>
           </div>
